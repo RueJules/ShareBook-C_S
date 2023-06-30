@@ -1,0 +1,49 @@
+Server(回复):
+LoginJson{
+    "profile":      ,
+    "nickname":     ,
+    "concernCount":         ,
+    "fanCount":             ,
+    "netizenId":
+}
+
+
+ViewNote{(10条笔记概要) //多个笔记信息同时返回，用笔记id作为键
+    "title":            ,
+    "firstMaterial":    ,
+    "bloggerNickname":        ,
+    "bloggerProfile":   ,
+}
+
+
+CheckOneNote{
+    "content":       ,
+    "time":          ,
+    "bloggerId":     ,
+    "materials":[]      ,
+    
+}
+Comment{   //多个评论信息同时返回，用commentid作为键
+    "ownerId":      ,
+    "ownerProfile": ,
+    "ownerNickname":,
+    "content":      ,
+    "time":         ,
+    "replyCount":   ,     
+    "oneReply":["ownerId":, "ownerNickname": , ,"ownerProfile":, "content":, "time":]
+}
+CommentReply{ //多个评论回复信息同时返回，用commentid（评论回复和评论的本质相同）作为键
+    "ownerId":, 
+    "ownerNickname": ,
+    "ownerProfile":, 
+    "content":, 
+    "time":
+}
+
+PublishComment{
+    发布结果
+}
+
+PublishNote{
+    发布结果
+}

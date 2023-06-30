@@ -1,0 +1,59 @@
+Client(发送条件): 
+LoginJson{
+    "function":"login"  ,
+    "nickname":   ,     //登录的时候输入昵称来登录，像github,昵称唯一
+    "password":   ,
+}
+
+
+
+ViewNote{
+    "function":"viewNote"      ,
+    "ownId":                   ,
+}
+
+
+
+
+
+CheckOneNote{
+    "function":"wantNoteDetails"      ,
+    "noteId":       ,
+    "ownId":        ,
+}
+CheckCommentReply{
+    "function":"checkCommentReplies",
+    "parentCommentId":     ,
+}
+
+
+
+publishComment{
+    "function":"publishComment",
+    "ownerId":    ,
+    "title":    ,
+    "content":  ,
+    "parentId"  ,
+    "noteId":   ,
+    "commentId": ,
+    //"time":     由服务器生成
+}
+
+PublishNote{
+    "content":,
+    "title":,
+    "materials":[],
+    "noteId":   ,
+    "netizenId",
+}
+
+
+
+
+
+
+
+
+
+
+
