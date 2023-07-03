@@ -38,7 +38,7 @@ void Netizen::addFootMark(QString checkNoteId, NoteProxy &&checkNote)
 
 QJsonObject Netizen::getAbstract()
 {
-    QPixmap pixMap(""); //根据id查找图片路径
+    QPixmap pixMap("/root/sharebook/profiles" + m_profileImage); //根据id查找图片路径
     QByteArray bytes;
     QBuffer buffer(&bytes);
     buffer.open(QIODevice::WriteOnly);
@@ -46,10 +46,11 @@ QJsonObject Netizen::getAbstract()
 
     QJsonObject netizenJson;
     netizenJson={
+
         {"nickname",m_nickName},
         {"profile",QJsonValue::fromVariant(bytes.toBase64())}
 
-        };
+    };
     return netizenJson;
 }
 

@@ -3,6 +3,7 @@ Date:2023.6.19*/
 #include "noteBroker.h"
 #include <QJsonObject>
 #include<iostream>
+#include  "materialProxy.h"
 std::shared_ptr<NoteBroker> NoteBroker::s_noteBroker = nullptr;
 std::mutex NoteBroker::noteBrokerMutex;
 NoteBroker::NoteBroker()
@@ -72,15 +73,23 @@ void NoteBroker::createNote(QJsonObject noteObject)
         QString netizenId=noteObject["netizenId"].toString();
         int materials=noteObject["materialCount"].toInt();
         QDateTime time=QDateTime::currentDateTime();
-        //在服务端新建netizen实例
+        //在服务端新建note实例
         Note note(noteId,title,content,time,materials,netizenId);
         //读素材列表
         QStringList uuidlist=noteObject["materials"].toObject().keys();
+         QJsonObject materialsJson=noteObject["materials"].toObject();
         for(const auto &uuid:uuidlist){
-            QJsonObject o=noteObject["materials"].toObject();
-            QJsonObject o1=o[uuid].toObject();
+            QJsonObject oneMaterial=materialsJson[uuid].toObject();
+
+            //保存图片到服务器目录
+            QString imagebaseb4Data= oneMaterial.value("image").toString();
+            QByteArray imageData = QByteArray::fromBase64(imagebaseb4Data.toUtf8());
+            QPixmap pi;
+            pi.loadFromData(imageData);
+            pi.save("/root/sharebook/materials" + oneMaterial["path"].toString());
+
             MaterialProxy mp(uuid);
-            note.addMaterial(o1["order"].toInt(),std::move(mp));
+            note.addMaterial(oneMaterial["order"].toInt(),std::move(mp));
         }
         //加入缓存
         m_cache.addToCache(noteId,std::move(note));
@@ -93,17 +102,53 @@ void NoteBroker::initCache()
     //material列表都设置为空的proxy
 }
 
-QJsonDocument NoteBroker::getNotes(std::string netizenId)
+QJsonDocument NoteBroker::getNotes(QString netizenId)
 {
-//    QList<Note> list;
-//    m_cache.getNotes(netizenId, list);
-//    QJsonObject noteJson;
-//    for(auto note:list){
+    QList<Note*> list;
+    m_cache.getNotes(netizenId, list);
+    if(list.length() < 10){
+        //数据库里在找剩下的几条
+        int differrence = 10 - list.length();
+        std::string cmd = "select * from note where bogger!=\"" + netizenId.toStdString() + "\" LIMIT" + std::to_string(differrence);
+        sql::ResultSet *notesDiff = query(cmd);
 
-//    }
-    //一次查找10条笔记，不包括自己ID的笔记
-    //现在cache中查找
+        while(notesDiff->next()){
+            QString noteId = QString::fromStdString(notesDiff->getString(1).c_str());
+            QString title=QString::fromStdString(notesDiff->getString(2).c_str());
+            QString content=QString::fromStdString(notesDiff->getString(3).c_str());
+            int materials=notesDiff->getInt(4);
+            QDateTime time=QDateTime::fromString(QString::fromStdString(notesDiff->getString(5).c_str()),"yyyyMMddhhmmss");
+            QString bloggerId=QString::fromStdString(notesDiff->getString(6).c_str());
 
+            Note note(noteId, title, content,time,materials,bloggerId);
+
+            std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
+
+
+
+            sql::ResultSet *set_m = query(cmd_m);
+            while(set_m->next()){
+                QString id = QString::fromStdString(set_m->getString(1).c_str());
+                int order = set_m->getInt("number");
+                MaterialProxy mp(id);
+                note.addMaterial(order, std::move(mp));
+            }
+            list.emplace_back(&note);
+            //加到缓存
+            m_cache.addToCache(noteId,std::move(note));
+        }
+
+    }
+
+    QJsonObject notesJson;
+    QJsonDocument notesDoc;
+    for(auto note:list){
+        QJsonObject nJson = note->getNoteAbstract();
+        notesJson.insert(note->get_Id(), QJsonValue(nJson));
+    }
+    notesJson.insert("function", "view");
+    notesDoc.setObject(notesJson);
+    return notesDoc;
 }
 
 void NoteBroker::sycn()

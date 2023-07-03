@@ -2,6 +2,8 @@
 Date:2023.6.17*/
 
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QVariant>
 #include <QPixmap>
 #include <QBuffer>
 
@@ -14,8 +16,9 @@ Material::Material(QString id, QString imgsrc, QString note_id, int order):Mater
 
 QJsonObject Material::getDetails()
 {
+    //根据图片路径在本地图库中找到图片并转码
     QPixmap image;
-    image.load("/root/resource/Screenshot_20230629_200927.png");
+    image.load("/root/sharebook/materials" + m_imgsrc);
     QByteArray imageData;
     QBuffer buffer(&imageData);
     buffer.open(QIODevice::WriteOnly);
@@ -23,8 +26,9 @@ QJsonObject Material::getDetails()
     buffer.close();
 
     QJsonObject imgJson{
-        {"source","ffgf"},
-        {"order", m_order}
+
+        {"ImgData",QJsonValue::fromVariant(imageData.toBase64())},
+
     };
     return imgJson;
 }

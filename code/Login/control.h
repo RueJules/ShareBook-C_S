@@ -12,7 +12,7 @@ class Control:public QObject{
 
 public:
     QJsonDocument matchLoginInfo(QByteArray data);
-    QJsonDocument dealRequestRecommendNote(std::string netizenid);
+    QJsonDocument dealRequestRecommendNote(QByteArray data);
     void dealRequestPublishNote(QByteArray data);
 
 private:

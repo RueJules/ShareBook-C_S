@@ -13,7 +13,7 @@ public:
     Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger);//从数据库读取数据生成笔记
    /* Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger,std::map<MaterialProxy> &&materialList);*///从数据库读取数据生成笔记
 //    void addMaterial(QString materialId,MaterialProxy&& material)override;
-    void addMaterial(int order,MaterialProxy&& material)override;
+    void addMaterial(int order,MaterialProxy &&material)override;
     QJsonObject getNoteAbstract() override;
 
 private:

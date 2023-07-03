@@ -4,6 +4,8 @@
 #include <memory>
 #include <QList>
 
+#define FIND_COUNT  10
+
 template<typename T>
 class Cache
 {
@@ -22,13 +24,13 @@ public:
     void addToCache(QString id,T &&entity){
         cache.emplace(id,std::move(entity));
     }
-    void  getNotes(QString netizenID, QList<T> &list){
+    void  getNotes(QString netizenID, QList<T*> &list){
         for(auto it = cache.begin(); it != cache.end(); ++it){
-            if(list.size() >= 10){
+            if(list.size() >= FIND_COUNT){
                 break;
             }
-            if(it->key != netizenID){
-                list.emplace_back(it->second);
+            if(it->first != netizenID){
+                list.emplace_back(&it->second);
             }
         }
     }

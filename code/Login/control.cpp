@@ -28,15 +28,13 @@ QJsonDocument Control::matchLoginInfo(QByteArray data)
         QByteArray imageData;
         QBuffer buffer(&imageData);
         buffer.open(QIODevice::WriteOnly);
-        image.save(&buffer,"png",100);
+        image.save(&buffer,"jpg",1);
         buffer.close(); // 关闭QBuffer
 
         netizenInfo["profile"]=QJsonValue::fromVariant(imageData);
 
         //先发送给客户端
         QJsonDocument account(netizenInfo);
-        //调用socket写
-        account.toJson().constData();
 
         //再在服务器这边创建netizen实例
         NetizenBroker::getInstance()->createNetizen(netizenInfo);
@@ -44,6 +42,14 @@ QJsonDocument Control::matchLoginInfo(QByteArray data)
     }
     QJsonDocument account;
     return account;
+}
+
+QJsonDocument Control::dealRequestRecommendNote(QByteArray data)
+{
+    QJsonDocument loadDoc=QJsonDocument::fromJson(data);
+    QJsonObject noteDetailInfo=loadDoc.object();
+    QString requestId = noteDetailInfo["netizenId"].toString();
+    return NoteBroker::getInstance()->getNotes(requestId);
 }
 
 void Control::dealRequestPublishNote(QByteArray data)

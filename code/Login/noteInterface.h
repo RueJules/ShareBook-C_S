@@ -4,6 +4,7 @@ Date:2023.6.19*/
 #define NOTEINTERFACE_H
 #include <QString>
 #include <QJsonObject>
+#include "materialProxy.h"
 class MaterialProxy;
 class NoteInterface {
 

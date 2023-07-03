@@ -18,7 +18,7 @@ public:
     Note *findById(QString noteId);
     void createNote(QJsonObject noteObject);
     void initCache();//同步数据库，把数据库的内容写到cache里
-    QJsonDocument getNotes(std::string netizenId);
+    QJsonDocument getNotes(QString netizenId);
     void sycn();//同步数据库，把cache的内容写回数据库
 private:
     NoteBroker();

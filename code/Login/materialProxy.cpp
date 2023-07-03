@@ -16,11 +16,11 @@ MaterialProxy::MaterialProxy(QString id, std::unique_ptr<Material>&&material):Ma
 
 QJsonObject MaterialProxy::getDetails()
 {
-//    if(m_material == nullptr_t){
-//        Material *material =  MaterialBroker::getInstance()->findById();
-//        m_material = std::make_unique<Material>(material);
-//    }
-//    return m_material->getDetails();
+    if(m_material == nullptr){
+        Material *material =  MaterialBroker::getInstance()->findById(get_id());
+        m_material = std::make_unique<Material>(*material);
+    }
+    return m_material->getDetails();
 }
 
 

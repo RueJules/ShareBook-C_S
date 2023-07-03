@@ -3,6 +3,7 @@ Date:2023.6.19*/
 #ifndef NOTEPROXY_H
 #define NOTEPROXY_H
 #include "note.h"
+#include "materialBroker.h"
 class NoteProxy : public NoteInterface {
 
 public:
