@@ -29,7 +29,7 @@ Item {
                 //OpacityMask使用时用到的rectangle和image必须在同一层级
                 Image {
                     id: material
-                    source: firstImg===""?"qrc:/UI/default/2991e08f0e0926a5424c8cb73bca7742.png":modelData[3]
+                    source: modelData[3]===""?"qrc:/UI/default/2991e08f0e0926a5424c8cb73bca7742.png":"image://material/" + modelData[3];
                     width: parent.width
                     height:parent.height-115
                     fillMode: Image.PreserveAspectFit //缩放以适应屏幕
@@ -67,7 +67,7 @@ Item {
                 }
                 Image {
                     id: profileImg
-                    source:modelData[5]
+                    source:"image://material/" + modelData[5];
                     width: 50
                     height: 50
                     anchors.left: parent.left

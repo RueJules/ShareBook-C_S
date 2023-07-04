@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 #include <QByteArray>
 
 using namespace boost::asio;
@@ -15,7 +16,11 @@ public:
     void do_write(QByteArray);
     void do_read();
 
+
 private:
+    static boost::asio::io_service service;
+    boost::shared_ptr<io_service::work> work;
+    boost::thread thread;
 
     Control *control;
 
@@ -25,6 +30,11 @@ private:
     boost::asio::streambuf read_buffer;
     std::mutex write_mutex;
     bool started;
+   QByteArray default_data;
+    //bool read=false;
+//    deadline_timer timer;
+
+//    service.run();
 
 };
 

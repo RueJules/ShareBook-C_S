@@ -15,6 +15,7 @@ target_sources(appclient
         main.cpp
         client.cpp client.h
         control.cpp control.h
+        imageprovider.cpp imageprovider.h
         
     PUBLIC
         
