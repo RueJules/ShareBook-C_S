@@ -25,6 +25,7 @@ void Client::do_write(QByteArray data) {
 
     if(data==default_data)
     {
+        //sleep(3);
         do_read();
     }
     std::lock_guard<std::mutex> lock(write_mutex);
@@ -41,8 +42,6 @@ void Client::do_write(QByteArray data) {
                                  else {
                                     std::cerr << "消息发送失败：" << ec.message() << std::endl;
                                  }
-                                 //saved_data = data;
-                                 //can_write=false;
                              });
 }
 
@@ -50,40 +49,33 @@ void Client::do_read() {
 
 
     auto self(shared_from_this());
-  //  bool can_write = false;
-//    std::shared_ptr<deadline_timer> timer=std::make_shared<deadline_timer>(service,boost::posix_time::seconds(20));
-//    timer->async_wait([this,self,timer](boost::system::error_code ec){
-//            if(!ec){
-//                do_write(saved_data);
-//            }
-//        }
-//    );
-
-    boost::asio::async_read_until(socket, read_buffer, "}\n\r", [this, self](const boost::system::error_code &ec, std::size_t length){
+    boost::asio::async_read_until(socket, read_buffer, "\r", [this, self](const boost::system::error_code &ec, std::size_t length){
         if(!ec){
-            std::string data(boost::asio::buffers_begin(read_buffer.data()), boost::asio::buffers_end(read_buffer.data()));
-            QByteArray recArray(data.c_str());
             qDebug() << "收到回复：";
-//            const char* data = boost::asio::buffer_cast<const char*>(read_buffer.data());
-//            QByteArray bytes=QByteArray::fromRawData(data, length);
-            qDebug()<<recArray;
-            QJsonDocument doc(QJsonDocument::fromJson(recArray));
+            std::istream is(&read_buffer);
+            QByteArray bytes;
+            bytes.resize(length);
+            is.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+
+            qDebug()<<bytes;
+            QJsonDocument doc(QJsonDocument::fromJson(bytes));
             QJsonObject obj=doc.object();
             QString function=obj["function"].toString();
+            qDebug()<<Qt::endl<<"**********************"<<"::"<<function<<"::"<<Qt::endl;
             if(function=="login"){
-                control->receiveLoginInfo(recArray);
+                control->receiveLoginInfo(bytes);
 
             }
-            if(function=="view"){
-                control->receiveNotes(recArray);
+            if(function==""){
+                control->receiveNotes(bytes);
 
             }
-            read_buffer.consume(length);
-            if(length!=0)
-            {
-                std::cout<<Qt::endl<<"**********************"<<"::"<<length<<"::"<<Qt::endl;
-                do_write(default_data);
-            }
+            //read_buffer.consume(length);
+//            if(length!=0)
+//            {
+//                std::cout<<Qt::endl<<"**********************"<<"::"<<read_buffer.size()<<"::"<<Qt::endl;
+//                do_write(default_data);
+//            }
 
         }
         else {
