@@ -17,7 +17,7 @@ ViewNote{
 
 
 CheckOneNote{
-    "function":"wantNoteDetails"      ,
+    "function":"check"      ,
     "noteId":       ,
     "ownId":        ,
 }
