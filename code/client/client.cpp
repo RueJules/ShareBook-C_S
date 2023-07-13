@@ -30,6 +30,7 @@ void Client::do_write(QByteArray data) {
     }
     std::lock_guard<std::mutex> lock(write_mutex);
     //qDebug()<<data;
+    //read_buffer.consume(read_buffer.size());
     auto self(shared_from_this());
     write_buffer = boost::asio::buffer(data.data(),data.size());
     socket.async_write_some(write_buffer,
@@ -49,6 +50,7 @@ void Client::do_read() {
 
 
     auto self(shared_from_this());
+    //read_buffer.consume(read_buffer.size());
     boost::asio::async_read_until(socket, read_buffer, "\r", [this, self](const boost::system::error_code &ec, std::size_t length){
         if(!ec){
             qDebug() << "收到回复：";
@@ -57,26 +59,32 @@ void Client::do_read() {
             bytes.resize(length);
             is.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 
-            qDebug()<<bytes;
+            //qDebug()<<bytes;
             QJsonDocument doc(QJsonDocument::fromJson(bytes));
             QJsonObject obj=doc.object();
+            //qDebug()<<obj;
             QString function=obj["function"].toString();
             qDebug()<<Qt::endl<<"**********************"<<"::"<<function<<"::"<<Qt::endl;
             if(function=="login"){
                 control->receiveLoginInfo(bytes);
-
             }
-            if(function==""){
+            if(function=="view"){
                 control->receiveNotes(bytes);
 
             }
-            //read_buffer.consume(length);
-//            if(length!=0)
-//            {
-//                std::cout<<Qt::endl<<"**********************"<<"::"<<read_buffer.size()<<"::"<<Qt::endl;
-//                do_write(default_data);
-//            }
+            qDebug()<<read_buffer.capacity();
+            qDebug()<<length;
 
+            if(read_buffer.size()>0)
+            {
+                //std::cout<<Qt::endl<<"**********************"<<"::"<<read_buffer.size()<<"::"<<Qt::endl;
+                //read_buffer.consume(read_buffer.size());
+                do_write(default_data);
+            }
+//            if(read_buffer.size()==0){
+//                read_buffer.commit(-0);
+//            }
+            //read_buffer.consume(length);
         }
         else {
 
@@ -84,6 +92,7 @@ void Client::do_read() {
             qDebug() << default_data;
             do_write(default_data);
         }
+       // read_buffer.consume(read_buffer.size());
     });
 }
 

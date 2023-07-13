@@ -11,8 +11,12 @@
 class Control :public QObject{
     Q_OBJECT
 public:
+    Q_PROPERTY(QList<QList<QVariant>> model READ getModel WRITE setModel NOTIFY modelChanged)
     Control();
     ImageProvider* getImageProvider() { return m_provider; }
+    QList<QList<QVariant>> getModel(){return model;}
+    void setModel(QList<QList<QVariant>> m){if(m!=model)model=m;}
+
 
     Q_INVOKABLE void requestLogin(QString nickname, QString psw);
     Q_INVOKABLE void receiveLoginInfo(QByteArray data);
@@ -26,16 +30,18 @@ public:
     Q_INVOKABLE void receiveReplyDetail(QByteArray data);
 
 signals:
-    void getNewNotes(QList<QList<QVariant>> newNotes);
+    //void getNewNotes(QList<QList<QVariant>> newNotes);
     void getAccountInfo(bool res);
     void getNoteDetail(QList<QList<QVariant>> NoteDetail);
     void getCommentDetail(QList<QList<QVariant>> NoteDetail);
     void getReplyDetail(QList<QList<QVariant>> NoteDetail);
+    void modelChanged();
 private:
-    static boost::asio::io_service m_service;
+    QList<QList<QVariant>> model;//
     ImageProvider *m_provider;
-    //保证service.run不会结束
-    boost::shared_ptr<io_service::work> work;
+
+    static boost::asio::io_service m_service;
+    boost::shared_ptr<io_service::work> work;    //保证service.run不会结束
     std::shared_ptr<Client> connect_socket;
     boost::thread_group threads;
 

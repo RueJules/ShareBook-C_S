@@ -4,13 +4,14 @@
 #include <QJsonDocument>
 #include <QList>
 #include <QPixmap>
-#define THREAD_COUNT 1
+#include<boost/make_shared.hpp>
+#define THREAD_COUNT 3
 
 boost::asio::io_service Control::m_service;
 
-Control::Control():work{new boost::asio::io_service::work(m_service)},m_provider{new ImageProvider}
+Control::Control():work{new boost::asio::io_service::work(m_service)},m_provider{new ImageProvider},model{}
 {
-    connect_socket=std::make_shared<Client>(m_service,"10.252.140.209",2001,this);
+    connect_socket=std::make_shared<Client>(m_service,"10.252.77.255",2001,this);
     for ( int i = 0; i < THREAD_COUNT; ++i)
         threads.create_thread(boost::bind(&boost::asio::io_service::run, &m_service));
 
@@ -74,9 +75,9 @@ void Control::receiveNotes(QByteArray data)
     QJsonDocument doc(QJsonDocument::fromJson(data));
     QJsonObject obj=doc.object();
     obj.remove("function");
-    qDebug()<<obj;
+    //qDebug()<<obj;
     QStringList keys=obj.keys();
-    QList<QList<QVariant>> sl;
+    //QList<QList<QVariant>> sl;
     for(const auto &key:keys){
         QList<QVariant> temp;//noteId
         temp.append(key);
@@ -98,14 +99,16 @@ void Control::receiveNotes(QByteArray data)
         i.loadFromData(d);
         i.save("/root/sharebook/"+blogger.value("netizenId").toString(),"jpg");
         m_provider->setPixmap(blogger.value("netizenId").toString(),i);
-        qDebug()<<Qt::endl<<Qt::endl<<Qt::endl<<data<<Qt::endl<<Qt::endl<<Qt::endl;
+        //qDebug()<<Qt::endl<<Qt::endl<<Qt::endl<<data<<Qt::endl<<Qt::endl<<Qt::endl;
         temp.append(blogger.value("nickname").toVariant());
         temp.append(blogger.value("netizenId").toVariant());
 
-        sl.append(temp);
+        model.append(temp);
 
     }
-    emit getNewNotes(sl);
+   // model.append(sl);
+    emit modelChanged();
+   // emit getNewNotes(sl);
 }
 
 void Control::requestNoteDetail(QString noteId)

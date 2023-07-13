@@ -1,21 +1,23 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 Item {
+
     Rectangle{
         anchors.fill: parent
         color:"#009688"
 
-        Connections {
-            target: control
-            function onGetNewNotes(newNotes){
-                grid.model=newNotes;
-            }
-        }
+//        Connections {
+//            target: control
+//            function onGetNewNotes(newNotes){
+//                //grid.mod=newNotes;
+//            }
+//        }
 
         GridView {
             id:grid
             anchors.fill: parent
-//            model: control.receiveNotes()
+            model: control.model
+            //model:data
             leftMargin:5
             cellWidth: (parent.width-grid.leftMargin)/2
             cellHeight:parent.height*2/5
@@ -133,7 +135,7 @@ Item {
             onNeedRefleshChanged: {
                 if(needReflesh){
                     console.log("刷新")
-                    control.getNotes()
+                    control.requestNotes()
                 }
             }
             onNeedLoadMoreChanged: {
