@@ -31,10 +31,10 @@ CheckCommentReply{
 publishComment{
     "function":"publishComment",
     "ownerId":    ,
-    "title":    ,
     "content":  ,
     "parentId"  ,
     "noteId":   ,
+    "topId":    ,
     "commentId": ,
     //"time":     由服务器生成
 }

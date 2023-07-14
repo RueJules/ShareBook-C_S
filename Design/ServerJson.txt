@@ -10,6 +10,7 @@ LoginJson{
 
 ViewNote{(10条笔记概要) //多个笔记信息同时返回，用笔记id作为键
     "title":            ,
+    "time":          , 
     "firstMaterial":    ,
     "bloggerNickname":        ,
     "bloggerProfile":   ,
@@ -18,7 +19,6 @@ ViewNote{(10条笔记概要) //多个笔记信息同时返回，用笔记id作�
 
 CheckOneNote{
     "content":       ,
-    "time":          , 
     "bloggerId":     ,
     "materials":[]      ,
     
