@@ -5,6 +5,7 @@ Date:2023.6.17*/
 #define MATERIALPROXY_H
 
 #include"material.h"
+#include "materialInterface.h"
 
 class MaterialProxy: public MaterialInterface
 {

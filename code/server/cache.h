@@ -3,8 +3,10 @@
 #include <QString>
 #include <memory>
 #include <QList>
+#include <unordered_map>
+#include <QDebug>
 
-#define FIND_COUNT 1
+#define FIND_COUNT 3
 
 template<typename T>
 class Cache
@@ -19,17 +21,21 @@ public:
             return false;
     }
     T& getFromCache(QString id){
-        return cache.at(id);
+        return cache.at(id);  //这里是不是应该用弹出？不然如果涉及修改，就不能把新修改的加入进去了
     }
     void addToCache(QString id,T &&entity){
-        cache.emplace(id,std::move(entity));
+        //question:加入缓存中的数据无法读取。
+        qDebug() << "cachesize:"<<cache.size() << '\n';
+        cache.emplace_hint(cache.begin(),id,std::move(entity));
     }
-    void  getNotes(QString netizenID, QList<T*> &list){
+    void  getSome(QList<QString> &listCompare, QList<T*> &list){
+
+        qDebug() << "from cache size: -----" << cache.size()<<'\n';
         for(auto it = cache.begin(); it != cache.end(); ++it){
-            if(list.size() >= FIND_COUNT){
+            if(list.length() >= FIND_COUNT){
                 break;
             }
-            if(it->first != netizenID){
+            if(!listCompare.contains(it->first)){
                 list.emplace_back(&it->second);
             }
         }
@@ -37,6 +43,7 @@ public:
 
 private:
     std::unordered_map<QString,T> cache;
+    //std::map<QString,T> cache;
 };
 
 #endif // CACHE_H

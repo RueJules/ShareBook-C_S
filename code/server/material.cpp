@@ -23,7 +23,7 @@ QJsonObject Material::getDetails()
     QByteArray imageData;
     QBuffer buffer(&imageData);
     buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer,"jpg", 1);
+    image.save(&buffer,"jpg", 50);
     buffer.close();
     qDebug ()<< "material id------" << get_id()<<'\n';
 

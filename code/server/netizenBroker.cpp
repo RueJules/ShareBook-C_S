@@ -59,7 +59,6 @@ QJsonObject NetizenBroker::matchLoginInfo(QString nickname, QString password)
 
         //给客户端返回信息
         netizenInfo={
-            {"function", "login"},
             {"netizenId",netizenId},
             {"password",password},
             {"nickname",nickname},
@@ -72,6 +71,8 @@ QJsonObject NetizenBroker::matchLoginInfo(QString nickname, QString password)
     else{
         netizenInfo={};
     }
+
+    qDebug() << netizenInfo;
     return netizenInfo;
 }
 

@@ -18,39 +18,55 @@ void BoostNetwork::start()
 void BoostNetwork::doRead()
 {
     auto self(shared_from_this());
-    boost::asio::async_read_until(m_socket, dataReceived, '\r', [this, self](const boost::system::error_code &e, std::size_t bytesFromClient){
+    boost::asio::async_read_until(m_socket, dataReceived, '\r', [this, self](const boost::system::error_code &e, std::size_t bytes){
         if(!e){
-            std::string data(boost::asio::buffers_begin(dataReceived.data()),       boost::asio::buffers_end(dataReceived.data()));
-            QByteArray recArray(data.c_str());
-            //            dataReceived.commit(bytesFromClient);
-            //            std::cout << "server deal the request----" << "size:" << bytesFromClient << "\n";
-            //            std::string wel = "Welcome Client\n";
-            //            const char* data = boost::asio::buffer_cast<const char*>(dataReceived.data());
-            //            QByteArray recArray(data);
-            qDebug() << recArray;
-            QJsonDocument fstDoc= QJsonDocument::fromJson(recArray);
-            QJsonObject fstObj = fstDoc.object();
-            qDebug()<<fstObj["function"];
-            QByteArray resArray;
 
+            std::istream is(&dataReceived);
+            QByteArray recArray;
+            recArray.resize(bytes);
+            is.read(recArray.data(), static_cast<std::streamsize>(recArray.size()));
+
+            qDebug() << recArray << recArray.size() <<Qt::endl;
+
+            //接收到的数据转换为Json对象
+            QJsonDocument receiveDoc= QJsonDocument::fromJson(recArray);
+            QJsonObject receiveObj = receiveDoc.object();
+
+            //服务器处理后准备送回去的结果
+            QByteArray resArray;
             resArray.clear();
 
-            if(fstObj["function"] == "login"){
+            //处理请求
+            if(receiveObj["function"] == "login")
+            {
                 qDebug() << "登录\n";
-                QJsonDocument jDoc(_control->matchLoginInfo(QByteArray::fromRawData(data.c_str(),bytesFromClient)));
+                QJsonDocument jDoc(_control->matchLoginInfo(recArray));
                 resArray = jDoc.toJson();
                 resArray.append('\r');  //添加分隔符
-                dataReceived.consume(bytesFromClient);
                 doWrite(resArray);
-
             }
-            if(fstObj["function"] == "view"){
+            if(receiveObj["function"] == "view")
+            {
                 qDebug() << "得到更多笔记\n";
-                resArray = _control->dealRequestRecommendNote(QByteArray::fromRawData(data.c_str(),bytesFromClient));
-                dataReceived.consume(bytesFromClient);
+                resArray = _control->dealRequestRecommendNote(recArray);
                 doWrite(resArray);
             }
-            //qDebug() << resArray;
+            if(receiveObj["function"] == "check")
+            {
+                qDebug() << "查看笔记详情\n";
+                resArray = _control->dealRequestNoteDetail(recArray);
+                doWrite(resArray);
+            }
+            if(receiveObj["function"] == "comment")
+            {
+                //获取一定数量的评论
+            }
+            if(receiveObj["function"] == "publish")
+            {
+                qDebug() << "发布笔记\n";
+                resArray = _control->dealRequestPublishNote(recArray);
+                doWrite(resArray);
+            }
         }else{
             std::cout << "没东西\n";
         }
@@ -60,15 +76,16 @@ void BoostNetwork::doRead()
 }
 void BoostNetwork::doWrite(QByteArray &result)
 {
-    qDebug() <<"准备发了！！！！" <<result <<'\n';
+    //qDebug() <<"准备发了！！！！" <<result <<'\n';
 
     dataToSend = boost::asio::buffer(result.data(), result.size());
     auto self(shared_from_this());
-    m_socket.async_write_some(dataToSend, [this, self](const boost::system::error_code &e, std::size_t bytes){
+    boost::asio::async_write(m_socket, dataToSend, [this, self](const boost::system::error_code &e, std::size_t bytes){
         qDebug() << "ok\n";
         qDebug() <<bytes<<'\n';
-        sleep(5);
+        //sleep(5);
         doRead();
     });
 }
+
 

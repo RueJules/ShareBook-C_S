@@ -17,7 +17,7 @@ public:
     ~NoteBroker();
     static std::shared_ptr<NoteBroker> getInstance();//获取单例
     Note *findById(QString noteId);
-    void createNote(QJsonObject noteObject);
+    bool createNote(QJsonObject noteObject);
     void initCache();//同步数据库，把数据库的内容写到cache里
     QByteArray getNotes(QString netizenId);
     void sycn();//同步数据库，把cache的内容写回数据库

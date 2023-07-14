@@ -36,13 +36,23 @@ void Netizen::addFootMark(QString checkNoteId, NoteProxy &&checkNote)
     m_footMarkList.emplace(checkNoteId, std::move(checkNote));
 }
 
+void Netizen::getNoteList(QList<QString> &notesId)
+{
+    for(std::unordered_map<QString, NoteProxy>::iterator note=m_pulishNoteList.begin();note != m_pulishNoteList.end();note++)
+    {
+        notesId.push_back(note->first);
+    }
+}
+
 QJsonObject Netizen::getAbstract()
 {
-    QPixmap pixMap(m_profileImage); //根据id查找图片路径
+    QPixmap pixMap;
+    pixMap.load(m_profileImage); //根据id查找图片路径
     QByteArray bytes;
     QBuffer buffer(&bytes);
     buffer.open(QIODevice::WriteOnly);
-    pixMap.save(&buffer, "JPG", 1);
+    pixMap.save(&buffer, "jpg", 1);
+    buffer.close();
 
     QJsonObject netizenJson;
     netizenJson={

@@ -7,6 +7,7 @@
 #include <QString>
 #include <QJsonDocument>
 #include "noteProxy.h"
+
 class NetizenProxy;
 class NetizenInterface {
 

@@ -9,8 +9,9 @@
 #include <unordered_map>
 #include "netizenInterface.h"
 #include "noteProxy.h"
+#include "netizenProxy.h"
 
-class NetizenProxy;
+//class NetizenProxy;
 
 class Netizen : public NetizenInterface {
 
@@ -23,6 +24,7 @@ public:
     void addFan(QString fanId, NetizenProxy &&fan) override;//添加新的分析
     void addConcern(QString concernId, NetizenProxy &&concern) override;//添加新的关注
     void addFootMark(QString checkNoteId, NoteProxy &&checkNote) override;
+    void getNoteList(QList<QString> &notesId);
 
     QJsonObject getAbstract() override;
     QJsonObject getDetails() override;

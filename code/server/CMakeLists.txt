@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(Login VERSION 0.1 LANGUAGES CXX)
+project(Server VERSION 0.1 LANGUAGES CXX)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Quick)
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -8,9 +8,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 qt_standard_project_setup()
 
-qt_add_executable(appLogin)
+qt_add_executable(appServer)
 
-target_sources(appLogin
+target_sources(appServer
     PRIVATE
         main.cpp
         control.cpp control.h
@@ -39,16 +39,16 @@ target_sources(appLogin
         
 )
 
-qt_add_qml_module(appLogin
+qt_add_qml_module(appServer
     URI Login
     VERSION 1.0
     QML_FILES 
         Main.qml
 )
 
-target_compile_features(appLogin PRIVATE cxx_std_20)
+target_compile_features(appServer PRIVATE cxx_std_20)
 
-set_target_properties(appLogin PROPERTIES
+set_target_properties(appServer PROPERTIES
     AUTORCC TRUE
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
@@ -57,7 +57,7 @@ set_target_properties(appLogin PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(appLogin
+target_link_libraries(appServer
     PRIVATE 
         Qt6::Quick
     PUBLIC
@@ -65,7 +65,7 @@ target_link_libraries(appLogin
         ${Boost_LIBRARIES}
 )
 
-install(TARGETS appLogin
+install(TARGETS appServer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

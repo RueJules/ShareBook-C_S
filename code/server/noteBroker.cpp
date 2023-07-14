@@ -3,6 +3,8 @@ Date:2023.6.19*/
 #include "noteBroker.h"
 #include <QJsonObject>
 #include <QByteArray>
+#include "netizen.h"
+#include "netizenBroker.h"
 #include<iostream>
 #include  "materialProxy.h"
 
@@ -39,36 +41,39 @@ Note *NoteBroker::findById(QString noteId)
         //从数据库中找
         std::string cmd="select * from note where id=\""+noteId.toStdString()+"\"";
         sql::ResultSet *set =query(cmd);
-        QString title=QString::fromStdString(set->getString(2).c_str());
-        QString content=QString::fromStdString(set->getString(3).c_str());
-        int materials=set->getInt(4);
-        QDateTime time=QDateTime::fromString(QString::fromStdString(set->getString(5).c_str()),"yyyyMMddhhmmss");
-        QString bloggerId=QString::fromStdString(set->getString(6).c_str());
+        while(set->next())
+        {
+            QString title=QString::fromStdString(set->getString(2).c_str());
+            QString content=QString::fromStdString(set->getString(3).c_str());
+            int materials=set->getInt(4);
+            QDateTime time=QDateTime::fromString(QString::fromStdString(set->getString(5).c_str()),"yyyyMMddhhmmss");
+            QString bloggerId=QString::fromStdString(set->getString(6).c_str());
 
 
-        //初始化素材容器，只获取所有素材的id和在笔记中的order,不生成实例
-        std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
+            Note note(noteId, title, content,time,materials,bloggerId);
 
-        Note note(noteId, title, content,time,materials,bloggerId);
+            //初始化素材容器，只获取所有素材的id和在笔记中的order,不生成实例
+            std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
+            sql::ResultSet *set_m = query(cmd_m);
+            while(set_m->next()){
+                QString id = QString::fromStdString(set_m->getString(1).c_str());
+                int order = set_m->getInt("number");
+                MaterialProxy mp(id);
+                note.addMaterial(order, std::move(mp));
+            }
 
-        sql::ResultSet *set_m = query(cmd_m);
-        while(set_m->next()){
-            QString id = QString::fromStdString(set_m->getString(1).c_str());
-            int order = set_m->getInt("number");
-            MaterialProxy mp(id);
-            note.addMaterial(order, std::move(mp));
+            //加到缓存
+            m_cache.addToCache(noteId,std::move(note));
+            return &m_cache.getFromCache(noteId);
         }
 
-        //加到缓存
-        m_cache.addToCache(noteId,std::move(note));
-        return &m_cache.getFromCache(noteId);
     }
     return nullptr;
 }
 
-void NoteBroker::createNote(QJsonObject noteObject)
+bool NoteBroker::createNote(QJsonObject noteObject)
 {
-    if(noteObject.isEmpty()){
+    if(!noteObject.isEmpty()){
         QString noteId=noteObject["noteId"].toString();
         QString title=noteObject["title"].toString();
         QString content=noteObject["content"].toString();
@@ -83,19 +88,28 @@ void NoteBroker::createNote(QJsonObject noteObject)
         for(const auto &uuid:uuidlist){
             QJsonObject oneMaterial=materialsJson[uuid].toObject();
 
-            //保存图片到服务器目录
-            QString imagebaseb4Data= oneMaterial.value("image").toString();
-            QByteArray imageData = QByteArray::fromBase64(imagebaseb4Data.toUtf8());
-            QPixmap pi;
-            pi.loadFromData(imageData);
-            pi.save("/root/sharebook/materials" + oneMaterial["path"].toString());
+//            保存图片到服务器目录
+//            QString imagebaseb4Data= oneMaterial.value("image").toString();
+//            QByteArray imageData = QByteArray::fromBase64(imagebaseb4Data.toUtf8());
+//            QPixmap pi;
+//            pi.loadFromData(imageData);
+//            pi.save("/root/sharebook/materials" + oneMaterial["path"].toString());
 
             MaterialProxy mp(uuid);
             note.addMaterial(oneMaterial["order"].toInt(),std::move(mp));
         }
         //加入缓存
         m_cache.addToCache(noteId,std::move(note));
+
+        //判断是否加入成功
+        bool yes_ = m_cache.inCache(noteId) ? true : false;
+        qDebug() << "-------------" << yes_ << Qt::endl;
+        return yes_;
+
+    }else{
+        return false;
     }
+
 }
 
 void NoteBroker::initCache()
@@ -107,11 +121,18 @@ void NoteBroker::initCache()
 QByteArray NoteBroker::getNotes(QString netizenId)
 {
     QList<Note*> list;
-    m_cache.getNotes(netizenId, list);
+    Netizen *netizen = NetizenBroker::getInstance()->findById(netizenId);
+    QList<QString> noteList;
+    netizen->getNoteList(noteList);
+    m_cache.getSome(noteList, list);
+
+    qDebug() << "length!!!!!!!!!!!!!!!!!!!!"<<list.length() <<'\n';
+
     if(list.length() < FIND_COUNT){
         //数据库里在找剩下的几条
         int differrence = FIND_COUNT - list.length();
-        std::string cmd = "select * from note where blogger!=\"" + netizenId.toStdString() + "\" LIMIT " + std::to_string(differrence);
+//        std::string cmd = "select * from note where blogger!=\"" + netizenId.toStdString() + "\" LIMIT " + std::to_string(differrence);
+        std::string cmd = "select * from note where blogger!=\"" + std::to_string(1) + "\" LIMIT " + std::to_string(differrence);
 
         qDebug() << "sql语句！！！！！！！！！！！1"<<cmd <<'\n';
 
@@ -122,21 +143,12 @@ QByteArray NoteBroker::getNotes(QString netizenId)
             QString title=QString::fromStdString(notesDiff->getString(2).c_str());
             QString content=QString::fromStdString(notesDiff->getString(3).c_str());
             int materials=notesDiff->getInt(4);
-
             std::string t = notesDiff->getString("time").c_str();
-            //qDebug() << "数据库读出来的时间！！！！！！！！！！！！！" << t <<'\n';
             QDateTime time=QDateTime::fromString(QString::fromStdString(t),"yyyy-MM-dd hh:mm:ss");
-
             QString bloggerId=QString::fromStdString(notesDiff->getString(6).c_str());
-
             Note note(noteId, title, content,time,materials,bloggerId);
 
-           // qDebug() << "时间！！！！！！！！！！！！！！！！"<<time.toString("yyyy-MM-dd hh:mm:ss") <<Qt::endl;
-
             std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
-
-
-
             sql::ResultSet *set_m = query(cmd_m);
             while(set_m->next()){
                 QString id = QString::fromStdString(set_m->getString(1).c_str());
@@ -144,7 +156,7 @@ QByteArray NoteBroker::getNotes(QString netizenId)
                 MaterialProxy mp(id);
                 note.addMaterial(order, std::move(mp));
             }
-            //list.emplace_back(&note);
+
             //加到缓存
             m_cache.addToCache(noteId,std::move(note));
             list.emplace_back(&m_cache.getFromCache(noteId));
@@ -159,10 +171,10 @@ QByteArray NoteBroker::getNotes(QString netizenId)
         QJsonDocument oneD;
         QJsonObject notesJson;
         QJsonObject nJson = note->getNoteAbstract();
-        nJson.insert("function", "view");
+        //nJson.insert("function", "view");
 
         notesJson.insert(note->get_Id(), QJsonValue(nJson));
-        //notesJson.insert("function", "view");
+        notesJson.insert("function", "view");
 
         oneD.setObject(notesJson);
         QByteArray array = oneD.toJson();

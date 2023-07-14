@@ -4,7 +4,8 @@ Date:2023.6.19*/
 #define NOTEINTERFACE_H
 #include <QString>
 #include <QJsonObject>
-#include "materialProxy.h"
+//#include "materialProxy.h"
+
 class MaterialProxy;
 class NoteInterface {
 
@@ -13,6 +14,7 @@ public:
     virtual void addMaterial(int order, MaterialProxy &&material)=0;//添加新的消息
     QString get_Id();
     virtual QJsonObject getNoteAbstract() = 0;
+    virtual QJsonObject getNoteDetails() = 0;
 private:
     QString m_id;
 

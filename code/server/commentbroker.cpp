@@ -48,12 +48,12 @@ Comment *CommentBroker::findById(QString commentId)
 }
 void CommentBroker::createComment(QJsonObject commentObject){
     if(commentObject.isEmpty()){
-        QString commentId=commentObject["commentId"].toString();
-        QString noteId=commentObject["noteId"].toString();
-        QString ownerId=commentObject["ownerId"].toString();
-        QString content=commentObject["content"].toString();
-        QString parentId=commentObject["parentId"].toString();
-        QString topId=commentObject["topId"].toString();
+        QString commentId=commentObject["commentId"].toString(); //这条评论（回复）的id
+        QString noteId=commentObject["noteId"].toString(); //评论所属笔记的id（如果是回复就为空）
+        QString ownerId=commentObject["ownerId"].toString();//评论发布者的id
+        QString content=commentObject["content"].toString();//评论的内容
+        QString parentId=commentObject["parentId"].toString(); //评论的是谁的id
+        QString topId=commentObject["topId"].toString(); //这条评论（回复）的最顶级评论的id
         QDateTime time=QDateTime::currentDateTime();
         //在服务端新建netizen实例
         Comment comment(commentId, ownerId, time,content,noteId,parentId,topId);
@@ -69,5 +69,5 @@ void CommentBroker::initCache()
 
 void CommentBroker::sycn()
 {
-
+    //将Cache中的对象同步到数据库中，
 }

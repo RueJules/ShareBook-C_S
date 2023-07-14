@@ -59,7 +59,7 @@ void RelationalBroker::insert(std::string cmd)
     try{
 
     std::unique_ptr<sql::PreparedStatement> stmnt(m_conn->prepareStatement(cmd));
-    stmnt->executeQuery();
+    stmnt->executeUpdate();
 
     }catch(sql::SQLException& e){
         std::cerr << "Error selecting tasks: " << e.what() << std::endl;
@@ -71,7 +71,7 @@ void RelationalBroker::update(std::string cmd)
     try{
 
         std::unique_ptr<sql::PreparedStatement> stmnt(m_conn->prepareStatement(cmd));
-        stmnt->executeQuery();
+        stmnt->executeUpdate();
 
     }catch(sql::SQLException& e){
         std::cerr << "Error selecting tasks: " << e.what() << std::endl;
@@ -83,7 +83,7 @@ void RelationalBroker::drop(std::string cmd)
     try{
 
         std::unique_ptr<sql::PreparedStatement> stmnt(m_conn->prepareStatement(cmd));
-        stmnt->executeQuery();
+        stmnt->executeUpdate();
 
     }catch(sql::SQLException& e){
         std::cerr << "Error selecting tasks: " << e.what() << std::endl;

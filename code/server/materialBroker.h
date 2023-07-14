@@ -13,7 +13,7 @@ public:
     ~MaterialBroker();
     static  std::shared_ptr<MaterialBroker> getInstance();
     Material *findById(QString materialId);
-    void createMaterial(QJsonObject materialObject);
+    bool createMaterial(QString noteId, QJsonObject materialObject);
     void initCache();//同步数据库，把数据库的内容写到cache里
     void sycn();//同步数据库，把cache的内容写回数据库
 

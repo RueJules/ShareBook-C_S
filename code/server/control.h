@@ -13,7 +13,9 @@ class Control:public QObject{
 public:
     QJsonDocument matchLoginInfo(QByteArray data);
     QByteArray dealRequestRecommendNote(QByteArray data);
-    void dealRequestPublishNote(QByteArray data);
+    QByteArray dealRequestNoteDetail(QByteArray data);
+    QByteArray dealRequestPublishNote(QByteArray data);
+    void dealRequestPublishComment(QByteArray data);
 
 private:
 

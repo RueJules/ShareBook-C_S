@@ -1,5 +1,6 @@
 #ifndef BOOSTNETWORK_H
 #define BOOSTNETWORK_H
+#include <QJsonObject>
 #include <boost/asio.hpp>
 #include "control.h"
 #include <memory>

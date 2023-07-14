@@ -56,28 +56,44 @@ Material *MaterialBroker::findById(QString materialId)
     return nullptr;
 }
 
-void MaterialBroker::createMaterial(QJsonObject materialObject)
+bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
 {
-    if(materialObject.isEmpty()){
-        QStringList keys = materialObject.keys();
+    if(!materialsObject.isEmpty()){
+        //图片所有uudi的集合
+        QStringList keys = materialsObject.keys();
+
+        //遍历每一个图片Json对象
         for(const auto &key:keys){
-            //主键是传来的uuid
-            QString materialId=key;
-            //图片是二进制传过来的，先存在本地生成路径再生成实例
-            QJsonDocument doc(materialObject["image"].toObject());
-            QByteArray imageData=doc.toJson();
+            //主键是传来的uuid,处理这个素材json对象
+            qDebug() << "uuid-----"<<key << '\n';
+            QJsonObject materialJ = materialsObject[key].toObject();
+
+            //素材的二进制数据
+            QByteArray imageData=QByteArray::fromBase64(materialJ["image"].toString().toUtf8());
             QImage image = QImage::fromData(imageData);
-            QString filename = "../"+materialId+".png";
-            image.save(filename);
-            //继续读其他的
-            QString noteId=materialObject["noteId"].toString();
-            int order=materialObject["order"].toInt();
+            QString filename = "/root/sharebook/materials/"+key;
+
+            //保存到服务器本地
+            image.save(filename, "jpg");
+
+            //继续读素材顺序
+            int order=materialJ["order"].toInt();
+
             //在服务端新建material实例
-            Material material(materialId, materialId, noteId,order);
+            Material material(key, filename, noteId,order);
+
             //加到缓存
-            m_cache.addToCache(materialId,std::move(material));
+            m_cache.addToCache(key,std::move(material));
+
+            //判断是否加入成功
+            bool yes_ = m_cache.inCache(key) ? true : false;
+            qDebug() << "-------------" << yes_ << Qt::endl;
+            return yes_;
         }
+
     }
+    return false;
+
 }
 
 void MaterialBroker::initCache()
