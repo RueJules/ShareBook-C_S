@@ -34,10 +34,7 @@ void Control::receiveLoginInfo(QByteArray data)
 {
     QJsonDocument doc(QJsonDocument::fromJson(data));
     QJsonObject obj=doc.object();
-//    if(data=="\r"){
-//        emit getAccountInfo(false);
-//        qDebug()<<"发了两个信号";
-//    }
+    obj.remove("function");
     if(!obj.isEmpty()){
         netizenId=obj["netizenId"].toString();
         //还有读头像和关注粉丝数量，有了推荐算法后这里还可以读喜好
