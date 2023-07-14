@@ -5,11 +5,12 @@ import Qt5Compat.GraphicalEffects
 import QtQuick.Layouts
 Page {
     id:edit
-    property var pics  //保存选择的素材列表（路径）
+    property var pics:[]  //保存选择的素材列表（路径）
     background: Rectangle{
         anchors.fill: parent
         color:"#fdfbfb"
     }
+
     Rectangle{
         id:title
         color: "#fdfbfb"
@@ -36,23 +37,24 @@ Page {
             onClicked: {
                 //console.log(textfield_title.text)
                 //如果内容和素材都为空
-                if(textarea_content.text===""&&pics==[])//------>提示用户必须选择一个输入
+                if(textarea_content.text===""&&pics===[])//------>提示用户必须选择一个输入
                 {
                     return;
                 }
                 //如果只有图片，自动添加标题“分享图片”
-                else if(textfield_title.text===""&&textarea_content.text==="")
+                if(textfield_title.text===""&&textarea_content.text==="")
                 {
                     textfield_title.text="分享图片"
                 }
                 //如果有内容但没有标题，标题为内容的前二十个字
-                else{
-                    if(textfield_title.text===""){
-                        textfield_title.text=textarea_content.text.substring(0,20)
-                    }
-                    control.requestPublish(textfield_title.text,textarea_content.text,pics);
-                    stack.clear()
+                if(textarea_content.text!==""&&textfield_title.text==="")
+                {
+                    console.log("内容不为空但标题空")
+                    textfield_title.text=textarea_content.text.substring(0,20)
                 }
+                control.requestPublishNote(textfield_title.text,textarea_content.text,pics);
+
+                stack.clear()
             }
         }
         MyButton{
@@ -71,9 +73,9 @@ Page {
             }
         }
     }
-//    ListModel{
-//        id:mymodel
-//    }
+    ListModel{
+        id:mymodel
+    }
     //存放选择的素材，是横着的list
     ListView{
         id:materialsView
@@ -86,7 +88,7 @@ Page {
         width: parent.width
         height:edit.width / 3.3
         orientation:ListView.Horizontal
-        model:pics
+        model:mymodel
         delegate: Rectangle {
             id:dgt
             radius: 7
@@ -142,7 +144,7 @@ Page {
                 nameFilters: ["Image files (*.png *.jpeg *.jpg)"]
                 onAccepted: {
                     for(var i=0;i<9&&i<selectedFiles.length;i++){
-                        //mymodel.append({"source":selectedFiles[i]})
+                        mymodel.append({"source":selectedFiles[i]})
                         pics.push(selectedFiles[i])
                     }
                 }
@@ -199,6 +201,7 @@ Page {
         height: parent.height / 4
         anchors.top: line2.bottom
         TextArea{
+            id:textarea_content
             padding: 15
             //无输入时显示的文本
             placeholderText: "输入文本内容（500个字）"

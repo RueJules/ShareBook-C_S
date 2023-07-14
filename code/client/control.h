@@ -25,7 +25,7 @@ public:
     Q_INVOKABLE void requestNoteDetail(QString noteId);
     Q_INVOKABLE void receiveNoteDetail(QByteArray data);
     Q_INVOKABLE void requestPublishNote(QString title,QString content,QList<QString> paths);
-    //Q_INVOKABLE void receivePublishNote(QByteArray data);
+    Q_INVOKABLE void receivePublishNote(QByteArray data);
     Q_INVOKABLE void requestCommentDetail(QString noteId);
     Q_INVOKABLE void receiveCommentDetail(QByteArray data);
     Q_INVOKABLE void requestReplyDetail(QString commentId);
@@ -33,6 +33,7 @@ public:
 
 signals:
     void getAccountInfo(bool res);
+    void getPublishResult(bool res);
     void getNoteDetail(QList<QList<QVariant>> NoteDetail);
     void getCommentDetail(QList<QList<QVariant>> NoteDetail);
     void getReplyDetail(QList<QList<QVariant>> NoteDetail);

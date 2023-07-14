@@ -34,10 +34,10 @@ void Control::receiveLoginInfo(QByteArray data)
 {
     QJsonDocument doc(QJsonDocument::fromJson(data));
     QJsonObject obj=doc.object();
-    if(data=="\r"){
-        emit getAccountInfo(false);
-        qDebug()<<"发了两个信号";
-    }
+//    if(data=="\r"){
+//        emit getAccountInfo(false);
+//        qDebug()<<"发了两个信号";
+//    }
     if(!obj.isEmpty()){
         netizenId=obj["netizenId"].toString();
         //还有读头像和关注粉丝数量，有了推荐算法后这里还可以读喜好
@@ -149,6 +149,7 @@ void Control::requestPublishNote(QString title,QString content,QList<QString> pa
     noteInfo={
         {"function","publish"},
         {"noteId",QUuid::createUuid().toString(QUuid::Id128)},
+        {"netizenId",netizenId},
         {"title",title},
         {"content",content}
     };
@@ -179,6 +180,19 @@ void Control::requestPublishNote(QString title,QString content,QList<QString> pa
     QByteArray data=doc.toJson();
     data.append('\r');
     connect_socket->do_write(data);
+}
+
+void Control::receivePublishNote(QByteArray data)
+{
+    QJsonDocument doc(QJsonDocument::fromJson(data));
+    QJsonObject obj=doc.object();
+    if(obj["result"].toString()=="true"){
+        qDebug("发送结果1");
+        emit getPublishResult(true);
+    }else{
+        qDebug("发送结果2");
+        emit getPublishResult(false);
+    }
 }
 
 void Control::requestCommentDetail(QString noteId)

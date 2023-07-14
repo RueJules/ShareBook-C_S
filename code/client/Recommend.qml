@@ -1,7 +1,18 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 Item {
-
+    Connections {
+        target: control
+        function onGetPublishResult(res){
+            if(res){
+                //提示笔记发布成功
+                console.log("发布成功")
+            }else{
+                //提示笔记发布失败
+                console.log("发布失败")
+            }
+        }
+    }
     Rectangle{
         anchors.fill: parent
         color:"#009688"

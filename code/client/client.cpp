@@ -77,6 +77,9 @@ void Client::do_read() {
             if(function=="check"){
                 control->receiveNoteDetail(bytes);
             }
+            if(function=="publish"){
+                control->receivePublishNote(bytes);
+            }
 //            qDebug()<<read_buffer.size();
 //            qDebug()<<length;
             if(read_buffer.size()>0)
