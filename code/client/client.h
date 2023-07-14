@@ -29,13 +29,6 @@ private:
     boost::asio::mutable_buffer write_buffer;
     boost::asio::streambuf read_buffer;
     std::mutex write_mutex;
-    bool started;
-   QByteArray default_data;
-    //bool read=false;
-//    deadline_timer timer;
-
-//    service.run();
-
 };
 
 #endif // CLIENT_H

@@ -1,16 +1,15 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import Qt5Compat.GraphicalEffects
 import QtQuick.Layouts
 Page {
     id:edit
-//    color:"#fdfbfb"
+    property var pics  //保存选择的素材列表（路径）
     background: Rectangle{
         anchors.fill: parent
         color:"#fdfbfb"
     }
-    property var pics: ["qrc:/resource_file/materials/mmexport1683778025723.jpg", "qrc:/resource_file/materials/mmexport1684237281162.jpg", "qrc:/resource_file/materials/mmexport1684937628890.jpg", "qrc:/resource_file/materials/mmexport1685247537325.jpg", "qrc:/resource_file/materials/mmexportf2b0d6afdc7183cb80fa7005dfe2e261_1668357584729.jpeg"]
-
     Rectangle{
         id:title
         color: "#fdfbfb"
@@ -35,19 +34,23 @@ Page {
             show:"qrc:/UI/icon/checkmark.svg"
             icon_color:"#009688"
             onClicked: {
-                console.log(textfield_title.text)
-//                if(textarea_content.text===""&&素材也为空)------>提示用户必须选择一个输入
-                //如果只有图片，自动添加标题“分享图片”
-                if(textfield_title.text===""&&textarea_content.text==="")
+                //console.log(textfield_title.text)
+                //如果内容和素材都为空
+                if(textarea_content.text===""&&pics==[])//------>提示用户必须选择一个输入
                 {
-                    //textfield_title.text="分享图片"
+                    return;
+                }
+                //如果只有图片，自动添加标题“分享图片”
+                else if(textfield_title.text===""&&textarea_content.text==="")
+                {
+                    textfield_title.text="分享图片"
                 }
                 //如果有内容但没有标题，标题为内容的前二十个字
                 else{
                     if(textfield_title.text===""){
                         textfield_title.text=textarea_content.text.substring(0,20)
                     }
-                    control.requestPublish(textfield_title.text,textarea_content.text,[]);
+                    control.requestPublish(textfield_title.text,textarea_content.text,pics);
                     stack.clear()
                 }
             }
@@ -68,6 +71,9 @@ Page {
             }
         }
     }
+//    ListModel{
+//        id:mymodel
+//    }
     //存放选择的素材，是横着的list
     ListView{
         id:materialsView
@@ -80,7 +86,7 @@ Page {
         width: parent.width
         height:edit.width / 3.3
         orientation:ListView.Horizontal
-        model:mymodel
+        model:pics
         delegate: Rectangle {
             id:dgt
             radius: 7
@@ -129,10 +135,21 @@ Page {
                 width: parent.width / 2
                 height: parent.width / 2
             }
+            FileDialog{
+                id:file
+                title:"选择图片"
+                fileMode:FileDialog.OpenFiles
+                nameFilters: ["Image files (*.png *.jpeg *.jpg)"]
+                onAccepted: {
+                    for(var i=0;i<9&&i<selectedFiles.length;i++){
+                        //mymodel.append({"source":selectedFiles[i]})
+                        pics.push(selectedFiles[i])
+                    }
+                }
+            }
             onClicked: {
-                var source1 = randomPcture()
-                mymodel.append({"source":source1})
                 //真是实现应该是加载（显示）本地图库里面的素材供网民选取
+                file.open()
             }
         }
     }
@@ -225,15 +242,5 @@ Page {
         anchors.top:keyWords.bottom
         color: "#53B7AF"
         opacity: 0.8
-    }
-    ListModel{
-        id:mymodel
-
-    }
-    function randomPcture(){
-        var random = Math.floor(Math.random()*pics.length)
-        console.log(pics[random])
-        return pics[random]
-
     }
 }

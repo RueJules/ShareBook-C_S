@@ -107,8 +107,8 @@ Item {
                 }
                 TapHandler{
                     onTapped: {
-                        control.requestNoteDetail();
-                        var detail_data=[profileImg.source,nicknameText.titleText.text,id_,material.source]
+                        control.requestNoteDetail(id_);
+                        var detail_data=[profileImg.source,nicknameText.text,titleText.text,id_,material.source,modelData[1]]
                         stack.push("NoteDetailPage.qml",{"data":detail_data})
                     }
                 }
@@ -119,7 +119,7 @@ Item {
                 //下拉刷新判断逻辑：已经到头了，还下拉一定距离
                 if (contentY < originY){
                     var top_offset = contentY - originY;
-                    if (top_offset < -10){
+                    if (top_offset < -30){
                         needReflesh=true;
                     }
                 }else{

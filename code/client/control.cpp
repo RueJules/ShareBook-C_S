@@ -4,7 +4,6 @@
 #include <QJsonDocument>
 #include <QList>
 #include <QPixmap>
-#include<boost/make_shared.hpp>
 #define THREAD_COUNT 3
 
 boost::asio::io_service Control::m_service;
@@ -42,7 +41,7 @@ void Control::receiveLoginInfo(QByteArray data)
         netizenId=obj["netizenId"].toString();
         //还有读头像和关注粉丝数量，有了推荐算法后这里还可以读喜好
         //应该把这些基本信息写入客户端本地的配置文件
-       // qDebug()<<obj;
+        //qDebug()<<obj;
         emit getAccountInfo(true);
         qDebug()<<"发了一个信号";
     }
@@ -77,38 +76,34 @@ void Control::receiveNotes(QByteArray data)
     obj.remove("function");
     //qDebug()<<obj;
     QStringList keys=obj.keys();
-    //QList<QList<QVariant>> sl;
     for(const auto &key:keys){
         QList<QVariant> temp;//noteId
         temp.append(key);
         auto value=obj.value(key).toObject();
+
         temp.append(value.value("time").toVariant());
         temp.append(value.value("title").toVariant());
+        //添加第一张素材的id到model中，内容到imageprovider中
         auto firstImg=value.value("FirstImg").toObject();
         QStringList k=firstImg.keys();
         QPixmap image;
         QByteArray data=QByteArray::fromBase64(firstImg.value(k[0]).toString().toUtf8());
         image.loadFromData(data);
-        image.save("/root/sharebook/"+k[0],"jpg");
-        m_provider->setPixmap(firstImg.value(k[0]).toString(),image);
-//        qDebug()<<Qt::endl<<Qt::endl<<Qt::endl<<data<<Qt::endl<<Qt::endl<<Qt::endl;
-        temp.append(firstImg.value(k[0]).toString());
+        m_provider->setPixmap(k[0],image);
+        temp.append(k[0]);
+        //添加头像id到model中，内容到imageprovider中
         auto blogger=value.value("Blogger").toObject();
         QPixmap i;
         QByteArray d=QByteArray::fromBase64(blogger.value("profile").toString().toUtf8());
         i.loadFromData(d);
-        i.save("/root/sharebook/"+blogger.value("netizenId").toString(),"jpg");
         m_provider->setPixmap(blogger.value("netizenId").toString(),i);
-        //qDebug()<<Qt::endl<<Qt::endl<<Qt::endl<<data<<Qt::endl<<Qt::endl<<Qt::endl;
+
         temp.append(blogger.value("nickname").toVariant());
         temp.append(blogger.value("netizenId").toVariant());
 
         model.append(temp);
-
     }
-   // model.append(sl);
     emit modelChanged();
-   // emit getNewNotes(sl);
 }
 
 void Control::requestNoteDetail(QString noteId)
@@ -120,29 +115,69 @@ void Control::requestNoteDetail(QString noteId)
     };
     QJsonDocument doc(noteInfo);
     QByteArray data=doc.toJson();
+    data.append('\r');
     connect_socket->do_write(data);
 }
 
 void Control::receiveNoteDetail(QByteArray data)
 {
-    //循环遍历每一个笔记
-    //把他转换Model的list来源
+    //获取笔记中除了第一张素材以外的素材
     QJsonDocument doc(QJsonDocument::fromJson(data));
     QJsonObject obj=doc.object();
-    QStringList keys=obj.keys();
     QList<QList<QVariant>> sl;
+    //添加内容
+    QList<QVariant>content={obj["content"].toVariant()};
+    sl.append(content);
+    //添加素材（传递的是素材id,内容写到imageprovider）
+    auto materials=obj["materials"].toObject();
+    QStringList keys=materials.keys();
+    QList<QVariant> temp;
     for(const auto &key:keys){
-        QList<QVariant> temp;
         temp.append(key);
-        auto value=obj.value(key).toObject();
-        QStringList ks=value.keys();
-        for(const auto &k:ks){
-            auto v=obj.value(key).toVariant();
-            temp.append(v);
-        }
-        sl.append(temp);
+        QPixmap image;
+        QByteArray data=QByteArray::fromBase64(materials.value(key).toString().toUtf8());
+        image.loadFromData(data);
+        m_provider->setPixmap(key,image);
     }
+    sl.append(temp);
     emit getNoteDetail(sl);
+}
+void Control::requestPublishNote(QString title,QString content,QList<QString> paths)
+{
+    QJsonObject noteInfo;
+    noteInfo={
+        {"function","publish"},
+        {"noteId",QUuid::createUuid().toString(QUuid::Id128)},
+        {"title",title},
+        {"content",content}
+    };
+
+    QJsonObject materials;
+    int order=0;//给素材排序
+    for(QString path:paths){
+        QJsonObject material;
+
+        path.remove(0,6);//删除file:/
+
+        QImage image(path);
+        QByteArray imageData;
+        QBuffer buffer(&imageData);
+        buffer.open(QIODevice::WriteOnly);
+        image.save(&buffer,"jpg");
+        buffer.close();
+
+        material.append("order",order++);
+        material.append("image",QString::fromLatin1(imageData.toBase64()));
+
+        QString uuid = QUuid::createUuid().toString(QUuid::Id128);
+        materials.append(uuid,QJsonValue(material));
+    }
+    noteInfo.append("materials",QJsonValue(materials));
+
+    QJsonDocument doc(noteInfo);
+    QByteArray data=doc.toJson();
+    data.append('\r');
+    connect_socket->do_write(data);
 }
 
 void Control::requestCommentDetail(QString noteId)

@@ -5,7 +5,7 @@
 boost::asio::io_service Client::service;
 Client::Client(boost::asio::io_service &io_service, const std::string &host, const int &port, Control *control_ptr)
     :socket(io_service),control{control_ptr},work{new boost::asio::io_service::work(service)}
-    ,thread(boost::bind(&boost::asio::io_service::run, &service)),default_data() {
+    ,thread(boost::bind(&boost::asio::io_service::run, &service)) {
 
     // 异步解析主机和服务
     ip::tcp::endpoint ep(ip::address::from_string(host), port);
@@ -23,13 +23,14 @@ Client::Client(boost::asio::io_service &io_service, const std::string &host, con
 
 void Client::do_write(QByteArray data) {
 
-    if(data==default_data)
-    {
-        //sleep(3);
-        do_read();
-    }
+//    if(data==default_data)
+//    {
+//        //sleep(3);
+//        do_read();
+//        return;
+//    }
     std::lock_guard<std::mutex> lock(write_mutex);
-    //qDebug()<<data;
+    qDebug()<<data;
     //read_buffer.consume(read_buffer.size());
     auto self(shared_from_this());
     write_buffer = boost::asio::buffer(data.data(),data.size());
@@ -48,9 +49,7 @@ void Client::do_write(QByteArray data) {
 
 void Client::do_read() {
 
-
     auto self(shared_from_this());
-    //read_buffer.consume(read_buffer.size());
     boost::asio::async_read_until(socket, read_buffer, "\r", [this, self](const boost::system::error_code &ec, std::size_t length){
         if(!ec){
             qDebug() << "收到回复：";
@@ -60,9 +59,12 @@ void Client::do_read() {
             is.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 
             //qDebug()<<bytes;
+
             QJsonDocument doc(QJsonDocument::fromJson(bytes));
             QJsonObject obj=doc.object();
+
             //qDebug()<<obj;
+
             QString function=obj["function"].toString();
             qDebug()<<Qt::endl<<"**********************"<<"::"<<function<<"::"<<Qt::endl;
             if(function=="login"){
@@ -72,27 +74,19 @@ void Client::do_read() {
                 control->receiveNotes(bytes);
 
             }
-            qDebug()<<read_buffer.capacity();
-            qDebug()<<length;
-
+            if(function=="check"){
+                control->receiveNoteDetail(bytes);
+            }
+//            qDebug()<<read_buffer.size();
+//            qDebug()<<length;
             if(read_buffer.size()>0)
             {
-                //std::cout<<Qt::endl<<"**********************"<<"::"<<read_buffer.size()<<"::"<<Qt::endl;
-                //read_buffer.consume(read_buffer.size());
-                do_write(default_data);
+                do_read();
             }
-//            if(read_buffer.size()==0){
-//                read_buffer.commit(-0);
-//            }
-            //read_buffer.consume(length);
         }
         else {
-
             std::cerr << "读取失败：" << ec.message() << std::endl;
-            qDebug() << default_data;
-            do_write(default_data);
         }
-       // read_buffer.consume(read_buffer.size());
     });
 }
 

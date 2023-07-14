@@ -12,8 +12,10 @@ Page {
     }
     Connections {
         target: control
-        function onGetNoteDetial(noteDetial){
-            //grid.model=newNotes;
+        function onGetNoteDetail(noteDetail){
+            contentArea.text=noteDetail[0][0];
+            repeater.model=noteDetail[1];
+            console.log(noteDetail[1]);
         }
     }
     visible: true
@@ -26,14 +28,12 @@ Page {
             spacing: -40
             Button{
                 id:btn
-               // width:ite
                 Layout.maximumHeight: itm.height
                 Layout.minimumHeight: itm.height
                 Layout.maximumWidth: itm.height
                 Layout.minimumWidth: itm.height
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-//                Layout.rightMargin: 1
                 Layout.leftMargin:5
                 Layout.alignment: Qt.AlignLeft
                 flat: true
@@ -50,8 +50,6 @@ Page {
                 Layout.minimumHeight: itm.height
                 Layout.maximumWidth: itm.height
                 Layout.minimumWidth: itm.height
-                //Layout.leftMargin: 1
-                //Layout.alignment: Qt.AlignLeft
                 Image {
                     id: d_profile
                     source: detail[0]
@@ -61,32 +59,26 @@ Page {
                 Rectangle {
                     id: d_mask
                     color: "black"
-                    //anchors.fill: parent
                     width: itm.height
                     height: itm.height
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     radius: 50
                     visible: false
-                    //Layout.leftMargin: 1
                 }
                 OpacityMask {
-                    //anchors.fill: d_profile
                     width: itm.height
                     height: itm.height
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    //Layout.leftMargin: 1
                     source: d_profile
                     maskSource: d_mask
                     visible: true
-                    //Layout.alignment: Qt.AlignLeft
                 }
             }
             Text{
                 id:nickname
                 Layout.leftMargin: 3
-                //Layout.alignment: Qt.AlignLeft
                 text:detail[1]
             }
             Button{
@@ -128,13 +120,13 @@ Page {
             height: 700
             Image{
                 fillMode: Image.PreserveAspectFit
-                source:detail[6]
+                source:detail[4]
             }
             Repeater{
-                model:control.getNoteDetails(Number(detail[5]))  //c++端传来的素材路径
+                id:repeater
                 Image{
                     fillMode: Image.PreserveAspectFit
-                    source:modelData
+                    source:"image://material/" + modelData;
                 }
             }
         }
@@ -170,7 +162,6 @@ Page {
             rightPadding: 20
             font.pointSize: 15
             wrapMode:Text.Wrap
-            text:detail[3]
 
         }
         Text{
@@ -184,7 +175,7 @@ Page {
             font.family: "Courier"
             font.pointSize: 15
             wrapMode:Text.Wrap
-            text:detail[4]
+            text:detail[5]
         }
     }
 }
