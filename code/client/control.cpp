@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QList>
 #include <QPixmap>
+#include <QBuffer>
 #define THREAD_COUNT 3
 
 boost::asio::io_service Control::m_service;
@@ -166,13 +167,13 @@ void Control::requestPublishNote(QString title,QString content,QList<QString> pa
         image.save(&buffer,"jpg");
         buffer.close();
 
-        material.append("order",order++);
-        material.append("image",QString::fromLatin1(imageData.toBase64()));
+        material.insert("order",order++);
+        material.insert("image",QString::fromLatin1(imageData.toBase64()));
 
         QString uuid = QUuid::createUuid().toString(QUuid::Id128);
-        materials.append(uuid,QJsonValue(material));
+        materials.insert(uuid,QJsonValue(material));
     }
-    noteInfo.append("materials",QJsonValue(materials));
+    noteInfo.insert("materials",QJsonValue(materials));
 
     QJsonDocument doc(noteInfo);
     QByteArray data=doc.toJson();
@@ -189,6 +190,7 @@ void Control::requestCommentDetail(QString noteId)
     };
     QJsonDocument doc(commentInfo);
     QByteArray data=doc.toJson();
+    data.append('\r');
     connect_socket->do_write(data);
 }
 
@@ -206,6 +208,7 @@ void Control::requestReplyDetail(QString commentId)
     };
     QJsonDocument doc(replyInfo);
     QByteArray data=doc.toJson();
+    data.append('\r');
     connect_socket->do_write(data);
 }
 
