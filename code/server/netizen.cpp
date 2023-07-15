@@ -13,7 +13,7 @@
 
 Netizen::Netizen():NetizenInterface{0}{}
 
-Netizen::Netizen(QString id,  QString nickname, QString profile):NetizenInterface{id},m_nickName{nickname},m_profileImage{profile}
+Netizen::Netizen(QString id, QString psw,  QString nickname, QString profile):NetizenInterface{id},m_password(psw),m_nickName{nickname},m_profileImage{profile}
 {
 
 }
@@ -44,6 +44,39 @@ void Netizen::getNoteList(QList<QString> &notesId)
     }
 }
 
+void Netizen::getFootmarkList(QList<QString> &notesId)
+{
+    for(std::unordered_map<QString, NoteProxy>::iterator note=m_footMarkList.begin();note != m_footMarkList.end();note++)
+    {
+        notesId.push_back(note->first);
+    }
+}
+
+void Netizen::getConcernList(QList<QString> &netizensId)
+{
+    for(std::unordered_map<QString, NetizenProxy>::iterator netizen=m_concernList.begin();netizen != m_concernList.end();netizen++)
+    {
+        netizensId.push_back(netizen->first);
+    }
+}
+
+void Netizen::getFanList(QList<QString> &netizensId)
+{
+    for(std::unordered_map<QString, NetizenProxy>::iterator netizen=m_fanList.begin();netizen != m_fanList.end();netizen++)
+    {
+        netizensId.push_back(netizen->first);
+    }
+}
+
+void Netizen::getInfo(QString &netizenid, QString &password, QString &nickname, QString &profile) const
+{
+    netizenid=id();
+    password=m_password;
+    nickname=m_nickName;
+    profile=m_profileImage;
+}
+
+//笔记缩略图需要的网民信息
 QJsonObject Netizen::getAbstract()
 {
     QPixmap pixMap;
@@ -64,6 +97,7 @@ QJsonObject Netizen::getAbstract()
     return netizenJson;
 }
 
+//个人主页信息详情
 QJsonObject Netizen::getDetails()
 {
 

@@ -33,26 +33,43 @@ std::shared_ptr<MaterialBroker> MaterialBroker::getInstance()
 
 Material *MaterialBroker::findById(QString materialId)
 {
-    if(m_cache.inCache(materialId)){
-        return &m_cache.getFromCache(materialId);
-    }
-    else{
-        //从数据库中找
-        std::string cmd="select * from material where id=\""+materialId.toStdString()+"\"";
-        sql::ResultSet *set =query(cmd);
-        if(set->next())
+    //在数据库中索取出来的cache内查找
+    if(oldClean_cache.inCache(materialId)){
+
+        return &oldClean_cache.getFromCache(materialId);
+
+    }else{
+        //新的缓存中查找
+        if(new_cache.inCache(materialId))
         {
+            return &new_cache.getFromCache(materialId);
 
-            QString image=QString::fromStdString(set->getString(2).c_str());
-            int order=set->getInt(3);
-            QString noteId=QString::fromStdString(set->getString(4).c_str());
-            Material material(materialId, image,noteId, order);
-            //加到缓存
-            m_cache.addToCache(materialId,std::move(material));
-            return &m_cache.getFromCache(materialId);
+        }else{
+            //old_dirty_cache中找
+            if(oldDirty_cache.inCache(materialId))
+            {
+                return &oldDirty_cache.getFromCache(materialId);
+
+            }else{
+                //从数据库中找
+                qDebug() << "material cache 拦截失败\n";
+//                std::string cmd="select * from material where id=\""+materialId.toStdString()+"\"";
+//                sql::ResultSet *set =query(cmd);
+//                if(set->next())
+//                {
+
+//                    QString image=QString::fromStdString(set->getString(2).c_str());
+//                    int order=set->getInt(3);
+//                    QString noteId=QString::fromStdString(set->getString(4).c_str());
+//                    Material material(materialId, image,noteId, order);
+//                    //加到缓存
+//                    oldClean_cache.addToCache(materialId,std::move(material));
+//                    return &oldClean_cache.getFromCache(materialId);
+//                }
+            }
         }
-
     }
+
     return nullptr;
 }
 
@@ -83,10 +100,10 @@ bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
             Material material(key, filename, noteId,order);
 
             //加到缓存
-            m_cache.addToCache(key,std::move(material));
+            new_cache.addToCache(key,std::move(material));
 
             //判断是否加入成功
-            bool yes_ = m_cache.inCache(key) ? true : false;
+            bool yes_ = new_cache.inCache(key) ? true : false;
             qDebug() << "-------------" << yes_ << Qt::endl;
             return yes_;
         }
@@ -99,11 +116,60 @@ bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
 void MaterialBroker::initCache()
 {
     //涉及到的表：materail
+    std::string cmd="select * from material ";
+    sql::ResultSet *set =query(cmd);
+    while(set->next())
+    {
+        QString materialId=QString::fromStdString(set->getString(1).c_str());
+        QString image=QString::fromStdString(set->getString(2).c_str());
+        int order=set->getInt(3);
+        QString noteId=QString::fromStdString(set->getString(4).c_str());
+        Material material(materialId, image,noteId, order);
+        //加到缓存
+        oldClean_cache.addToCache(materialId,std::move(material));
+    }
+    qDebug() << "materials init finish!\n";
 }
 
 void MaterialBroker::sycn()
 {
-
+    //将new_cache中新创建的（创建的，创建后没写入数据库就修改的）数据更新到数据库
+    std::unordered_map<QString,Material>& nc=new_cache.getCacheConst();
+    for(auto it = nc.begin(); it != nc.end(); ++it){
+        QString materialId;
+        QString image;
+        QString note_id;
+        int order;
+        Material &material=it->second;
+        material.getInfo(materialId,image,note_id,order);
+        std::string cmd="insert ignore into material(id,image,number,note_id) value(\""+materialId.toStdString()+"\",\""+image.toStdString()+"\","+std::to_string(order)+",\""+note_id.toStdString()+"\")";
+        insert(cmd);
+    }
+    new_cache.clearCache();
+    //将oldDirty_cache中被修改的（数据库中原本存在但现在被修改）数据更新到数据库
+    std::unordered_map<QString,Material>& odirtyc=oldDirty_cache.getCacheConst();
+    for(auto it = odirtyc.begin(); it != odirtyc.end(); ++it){
+        QString materialId;
+        QString image;
+        QString note_id;
+        int order;
+        Material material=it->second;
+        material.getInfo(materialId,image,note_id,order);
+        std::string cmd="update material set image=\""+image.toStdString()+"\",number="+std::to_string(order)+",note_id=\""+note_id.toStdString()+"\"where id=\""+materialId.toStdString()+"\"";
+        update(cmd);
+    }
+    oldDirty_cache.clearCache();
+    //将oldDelete_cache中被删除的（数据库中原本存在但现在被删除）数据更新到数据库
+    std::unordered_map<QString,Material>& odeletec=oldDelete_cache.getCacheConst();
+    for(auto it = odeletec.begin(); it != odeletec.end(); ++it){
+        Material material=it->second;
+        QString materialId=material.get_id();
+        std::string cmd="delete from material where id=\""+materialId.toStdString()+"\"";
+        drop(cmd);
+    }
+    oldDelete_cache.clearCache();
+    //更新oldClean_cache
+    initCache();
 }
 
 

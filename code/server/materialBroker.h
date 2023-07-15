@@ -24,7 +24,10 @@ private:
     static std::mutex materialBrokerMutex;
 
 
-    Cache<Material>m_cache;
+    Cache<Material> new_cache;
+    Cache<Material> oldClean_cache;
+    Cache<Material> oldDirty_cache;
+    Cache<Material> oldDelete_cache;
 };
 
 #endif // MATERIALBROKER_H

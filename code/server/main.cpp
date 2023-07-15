@@ -6,14 +6,23 @@
 #include "control.h"
 #include <QJsonObject>
 #include <QJsonDocument>
+#include "netizenBroker.h"
+#include "noteBroker.h"
+#include "materialBroker.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    //RelationalBroker *db = new RelationalBroker;
-    //db->initDataBase();
 
+    std::shared_ptr<NetizenBroker> netizenBroker = NetizenBroker::getInstance();
+    std::shared_ptr<NoteBroker> noteBroker = NoteBroker::getInstance();
+    std::shared_ptr<MaterialBroker> materialsBroker = MaterialBroker::getInstance();
+
+    //缓存初始化
+    netizenBroker->initCache();
+    noteBroker->initCache();
+    materialsBroker->initCache();
 
     Server server;
     server.startAccept();

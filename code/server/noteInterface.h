@@ -12,7 +12,7 @@ class NoteInterface {
 public:
     NoteInterface(QString id);
     virtual void addMaterial(int order, MaterialProxy &&material)=0;//添加新的消息
-    QString get_Id();
+    QString get_Id() const;
     virtual QJsonObject getNoteAbstract() = 0;
     virtual QJsonObject getNoteDetails() = 0;
 private:

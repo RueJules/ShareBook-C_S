@@ -34,3 +34,11 @@ QJsonObject Material::getDetails()
     };
     return imgJson;
 }
+
+void Material::getInfo(QString &id, QString &imgsrc, QString &note_id, int &order)
+{
+    id=get_id();
+    imgsrc=m_imgsrc;
+    note_id=m_noteId;
+    order=m_order;
+}

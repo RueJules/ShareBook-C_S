@@ -15,6 +15,7 @@ public:
     void addMaterial(int order,MaterialProxy &&material)override;
     QJsonObject getNoteAbstract() override;
     QJsonObject getNoteDetails() override;
+    QJsonObject toDB();
 
 private:
     QString m_bloggerId; //博主id

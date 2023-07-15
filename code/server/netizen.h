@@ -18,7 +18,7 @@ class Netizen : public NetizenInterface {
 public:
 //    //构造函数
     Netizen();
-    Netizen(QString id,  QString nickname, QString profile);
+    Netizen(QString id,  QString psw,QString nickname, QString profile);
 
     void addNote(QString noteId, NoteProxy &&note) override;//添加新发布的笔记，应该是返回bool类型？？
     void addFan(QString fanId, NetizenProxy &&fan) override;//添加新的分析
@@ -26,11 +26,17 @@ public:
     void addFootMark(QString checkNoteId, NoteProxy &&checkNote) override;
     void getNoteList(QList<QString> &notesId);
 
+    void getFootmarkList(QList<QString> &notesId);
+    void getConcernList(QList<QString> &netizensId);
+    void getFanList(QList<QString> &netizensId);
+    void getInfo(QString &netizenid, QString &password, QString &nickname, QString &profile) const;
+
     QJsonObject getAbstract() override;
     QJsonObject getDetails() override;
 
 private:
 
+    QString m_password;
     QString m_nickName;
     QString m_profileImage;//头像路径
     std::unordered_map<QString, NoteProxy> m_pulishNoteList;

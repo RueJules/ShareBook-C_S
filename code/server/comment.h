@@ -9,6 +9,7 @@ class Comment:public CommentInterface
 public:
     Comment(QString id,QString owner_id,QDateTime time,QString content,QString note_id,QString parent_id,QString top_id);
     QJsonObject getDetails()override;
+    void get_info(QString &id, QString &owner_id, QString &time, QString &content, QString &note_id, QString &parent_id, QString &top_id);
 private:
     QString m_ownerId;
     QString m_content;

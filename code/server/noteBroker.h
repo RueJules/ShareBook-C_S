@@ -25,7 +25,11 @@ private:
     NoteBroker();
     static std::shared_ptr<NoteBroker> s_noteBroker;
     static std::mutex noteBrokerMutex;
-    Cache<Note>m_cache;
+
+    Cache<Note>newCache;
+    Cache<Note>old_clean_cache;
+    Cache<Note>old_dirty_cache;
+    Cache<Note>old_deleted_cache;
 };
 
 #endif

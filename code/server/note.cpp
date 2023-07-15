@@ -59,6 +59,19 @@ QJsonObject Note::getNoteDetails()
     return noteDetails;
 }
 
+QJsonObject Note::toDB()
+{
+    QJsonObject note = {
+        {"id",get_Id()},
+        {"title",m_title},
+        {"content",m_content},
+        {"materials",m_materials},
+        {"time",m_time.toString()},
+        {"blogger",m_bloggerId}
+    };
+    return note;
+}
+
 
 
 
