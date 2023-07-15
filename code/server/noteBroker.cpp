@@ -226,50 +226,62 @@ QByteArray NoteBroker::getNotes(QString netizenId)
 
 void NoteBroker::sycn()
 {
-    std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
-    std::unordered_map<QString,Note> &mapFromODCache = old_dirty_cache.getCacheConst();
-    std::unordered_map<QString,Note> &mapFromODECache = old_deleted_cache.getCacheConst();
+    while(true){
+        std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
+        std::lock_guard<std::mutex> lock(noteBrokerMutex);
+        std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
+        std::unordered_map<QString,Note> &mapFromODCache = old_dirty_cache.getCacheConst();
+        std::unordered_map<QString,Note> &mapFromODECache = old_deleted_cache.getCacheConst();
 
-    //newCache内包括了脏的
-    for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
-    {
-        //更新note表
-        Note &note = it->second;
-        QJsonObject oneNote =note.toDB();
-        QString id = oneNote["id"].toString();
-        QString title = oneNote["title"].toString();
-        QString content = oneNote["content"].toString();
-        int materials = oneNote["materials"].toInt();
-        QString time = oneNote["time"].toString();
-        QString blogger = oneNote["blogger"].toString();
-        std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
-        insert(cmd);
+        //newCache内包括了脏的
+        for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
+        {
+            //更新note表
+            Note &note = it->second;
+            QJsonObject oneNote =note.toDB();
+            QString id = oneNote["id"].toString();
+            QString title = oneNote["title"].toString();
+            QString content = oneNote["content"].toString();
+            int materials = oneNote["materials"].toInt();
+            QString time = oneNote["time"].toString("yyyyMMddhhmmss");
+            QString blogger = oneNote["blogger"].toString();
+            std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
+            insert(cmd);
+                    qDebug() << cmd << '\n';
+        }
+        for(auto it = mapFromODCache.begin();it != mapFromODCache.end(); ++it)
+        {
+            //更新note表
+            Note &note = it->second;
+            QJsonObject oneNote =note.toDB();
+            QString id = oneNote["id"].toString();
+            QString title = oneNote["title"].toString();
+            QString content = oneNote["content"].toString();
+            int materials = oneNote["materials"].toInt();
+            QString time = oneNote["time"].toString();
+            QString blogger = oneNote["blogger"].toString();
+            std::string cmd = "update note set title=\""+title.toStdString() + "\",set content=\"" + content.toStdString() +"\",set materials=" + std::to_string(materials)+",set time=\"" +        time.toStdString() + "\",set blogger=\"" + blogger.toStdString()+ "\"where id=\"" + id.toStdString() + "\"";
+            update(cmd);
+                    qDebug() << cmd << '\n';
+        }
+        for(auto it = mapFromODECache.begin();it != mapFromODECache.end(); ++it)
+        {
+            //更新note表
+            Note &note = it->second;
+            QJsonObject oneNote =note.toDB();
+            QString id = oneNote["id"].toString();
+            std::string cmd = "delete from note where id=\"" + id.toStdString() + "\"";
+            drop(cmd);
+                    qDebug() << cmd << '\n';
+        }
+        //同步完成，再次初始化old_clean_cache
+        initCache();
     }
-    for(auto it = mapFromODCache.begin();it != mapFromODCache.end(); ++it)
-    {
-        //更新note表
-        Note &note = it->second;
-        QJsonObject oneNote =note.toDB();
-        QString id = oneNote["id"].toString();
-        QString title = oneNote["title"].toString();
-        QString content = oneNote["content"].toString();
-        int materials = oneNote["materials"].toInt();
-        QString time = oneNote["time"].toString();
-        QString blogger = oneNote["blogger"].toString();
-        std::string cmd = "update note set title=\""+title.toStdString() + "\",set content=\"" + content.toStdString() +"\",set materials=" + std::to_string(materials)+",set time=\"" +        time.toStdString() + "\",set blogger=\"" + blogger.toStdString()+ "\"where id=\"" + id.toStdString() + "\"";
-        update(cmd);
-    }
-    for(auto it = mapFromODECache.begin();it != mapFromODECache.end(); ++it)
-    {
-        //更新note表
-        Note &note = it->second;
-        QJsonObject oneNote =note.toDB();
-        QString id = oneNote["id"].toString();
-        std::string cmd = "delete from note where id=\"" + id.toStdString() + "\"";
-        drop(cmd);
-    }
-    //同步完成，再次初始化old_clean_cache
-    initCache();
+}
+
+void NoteBroker::start_thread()
+{
+    m_sycn_thread=new std::thread(&NoteBroker::sycn,this);
 }
 
 

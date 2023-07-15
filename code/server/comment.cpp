@@ -14,7 +14,7 @@ void Comment::get_info(QString &id, QString &owner_id, QString &time, QString &c
 {
     id=get_id();
     owner_id=m_ownerId;
-    time=m_time.toString();
+    time=m_time.toString("yyyyMMddhhmmss");
     content=m_content;
     note_id=m_noteId;
     parent_id=m_parentId;

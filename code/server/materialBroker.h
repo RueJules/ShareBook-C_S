@@ -6,6 +6,7 @@ Date:2023.6.17*/
 #include "relationalBroker.h"
 #include <QPixmap>
 #include "materialProxy.h"
+#include <thread>
 
 class MaterialBroker : public RelationalBroker
 {
@@ -16,13 +17,14 @@ public:
     bool createMaterial(QString noteId, QJsonObject materialObject);
     void initCache();//同步数据库，把数据库的内容写到cache里
     void sycn();//同步数据库，把cache的内容写回数据库
+    void start_thread();
 
 private:
     MaterialBroker();//私有构造函数，单例模式
 
     static std::shared_ptr<MaterialBroker> s_materialBroker;  //代管者实例
     static std::mutex materialBrokerMutex;
-
+    std::thread * m_sycn_thread;
 
     Cache<Material> new_cache;
     Cache<Material> oldClean_cache;

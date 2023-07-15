@@ -13,6 +13,8 @@
 #include "materialBroker.h"
 #include "noteBroker.h"
 #include "noteProxy.h"
+#include "commentbroker.h"
+
 QJsonDocument Control::matchLoginInfo(QByteArray data)
 {
     //qDebug() << data;
@@ -26,7 +28,7 @@ QJsonDocument Control::matchLoginInfo(QByteArray data)
 
 
     if(!netizenInfo.isEmpty()){
-        NetizenBroker::getInstance()->createNetizen(netizenInfo);
+        //NetizenBroker::getInstance()->createNetizen(netizenInfo);
         //给图片转码
         QImage image(netizenInfo["profile"].toString());
         QByteArray imageData;
@@ -69,9 +71,6 @@ QByteArray Control::dealRequestNoteDetail(QByteArray data)
     //找到这个笔记实例，并且获得笔记详情需要的笔记内容和所有素材信息
     Note *note = NoteBroker::getInstance()->findById(noteId);
     QJsonObject replyJson = note->getNoteDetails();
-
-    //请求一定数量的评论
-
 
     QJsonDocument replyDoc;
     replyDoc.setObject(replyJson);
@@ -141,7 +140,38 @@ QByteArray Control::dealRequestPublishNote(QByteArray data)
     return res;
 }
 
-void Control::dealRequestPublishComment(QByteArray data)
+QByteArray Control::dealRequestPublishComment(QByteArray data)
 {
+    //处理评论数据
+    QJsonDocument Jdoc = QJsonDocument::fromJson(data);
+    QJsonObject jObj = Jdoc.object();
+    bool commentPublished = false ;
+    commentPublished= CommentBroker::getInstance()->createComment(jObj);
+
+    //返回处理结果
+    QJsonObject reObj = {
+        {"function","publish_comment"}
+    };
+    qDebug() << commentPublished;
+    if(commentPublished)
+    {
+        reObj.insert("result","true");
+
+    }else{
+
+        reObj.insert("result","false");
+    }
+    QJsonDocument reDoc;
+    reDoc.setObject(reObj);
+    qDebug() << reObj <<'\n';
+    QByteArray res = reDoc.toJson();
+    res.append('\r');
+    return res;
+
+}
+
+QByteArray Control::dealRequestComments(QByteArray data)
+{
+    //由于还没有做到回复评论，现在先只寻找一定数量的评论
 
 }

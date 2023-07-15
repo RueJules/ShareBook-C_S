@@ -33,39 +33,53 @@ void BoostNetwork::doRead()
             QJsonObject receiveObj = receiveDoc.object();
 
             //服务器处理后准备送回去的结果
-            QByteArray resArray;
-            resArray.clear();
+            QByteArray resultArray;
+            resultArray.clear();
 
             //处理请求
             if(receiveObj["function"] == "login")
             {
                 qDebug() << "登录\n";
                 QJsonDocument jDoc(_control->matchLoginInfo(recArray));
-                resArray = jDoc.toJson();
-                resArray.append('\r');  //添加分隔符
-                doWrite(resArray);
+                resultArray = jDoc.toJson();
+                resultArray.append('\r');  //添加分隔符
+                doWrite(resultArray);
             }
             if(receiveObj["function"] == "view")
             {
                 qDebug() << "得到更多笔记\n";
-                resArray = _control->dealRequestRecommendNote(recArray);
-                doWrite(resArray);
+                resultArray = _control->dealRequestRecommendNote(recArray);
+                doWrite(resultArray);
             }
             if(receiveObj["function"] == "check")
             {
                 qDebug() << "查看笔记详情\n";
-                resArray = _control->dealRequestNoteDetail(recArray);
-                doWrite(resArray);
-            }
-            if(receiveObj["function"] == "comment")
-            {
-                //获取一定数量的评论
+                resultArray = _control->dealRequestNoteDetail(recArray);
+                doWrite(resultArray);
             }
             if(receiveObj["function"] == "publish")
             {
                 qDebug() << "发布笔记\n";
-                resArray = _control->dealRequestPublishNote(recArray);
-                doWrite(resArray);
+                resultArray = _control->dealRequestPublishNote(recArray);
+                doWrite(resultArray);
+            }
+            if(receiveObj["function"] == "publish_comment")
+            {
+                qDebug() << "发表评论\n";
+                resultArray = _control->dealRequestPublishComment(recArray);
+                doWrite(resultArray);
+            }
+            if(receiveObj["function"] == "view_more_comments")
+            {
+                qDebug() << "加载一些评论\n";
+                resultArray = _control->dealRequestComments(recArray);
+                //记得加'\r'了吗！！！！！
+                doWrite(resultArray);
+
+             }
+            if(receiveObj["function"] == "check_reply")
+            {
+
             }
         }else{
             std::cout << "没东西\n";

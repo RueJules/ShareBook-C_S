@@ -15,7 +15,8 @@ public:
     QByteArray dealRequestRecommendNote(QByteArray data);
     QByteArray dealRequestNoteDetail(QByteArray data);
     QByteArray dealRequestPublishNote(QByteArray data);
-    void dealRequestPublishComment(QByteArray data);
+    QByteArray dealRequestPublishComment(QByteArray data);
+    QByteArray dealRequestComments(QByteArray data);
 
 private:
 

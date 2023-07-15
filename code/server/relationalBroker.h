@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "cache.h"
+#define FRESH_TIME 10
 class RelationalBroker
 {
 public:

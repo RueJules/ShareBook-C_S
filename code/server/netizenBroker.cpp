@@ -247,96 +247,115 @@ void NetizenBroker::sycn()
 {
     //和netizen、published_note、checked_note表相关的操作
     //将new_cache中新创建的（创建的，创建后没写入数据库就修改的）数据更新到数据库
-    std::unordered_map<QString,Netizen>& nc=new_cache.getCacheConst();
-    for(auto it = nc.begin(); it != nc.end(); ++it){
-        QString netizenId;
-        QString password;
-        QString nickname;
-        QString profile;
-        QList<QString> concerns;
-        QList<QString> fans;
-        QList<QString> notes;
-        QList<QString> footmark;
-        Netizen &netizen=it->second;
-        netizen.getInfo(netizenId,password,nickname,profile);
-        netizen.getConcernList(concerns);
-        netizen.getFanList(fans);
-        netizen.getNoteList(notes);
-        netizen.getFootmarkList(footmark);
-        std::string cmd="insert ignore into netizen(id,password,nickname,profile_photo,concerns,fans,notes) value(\""+netizenId.toStdString()+"\",\""+password.toStdString()+"\",\""+nickname.toStdString()+"\",\""+profile.toStdString()+"\","+std::to_string(concerns.size())+","+std::to_string(fans.size())+","+std::to_string(notes.size())+")";
-        insert(cmd);
-        for(auto netizen:concerns){
-            QString id=netizenId+netizen;
-            std::string cmd="insert into netizen_concerns(id,netizen_id,concern_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
+    while(true){
+        std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
+        std::lock_guard<std::mutex> lock(netizenBrokerMutex);
+        std::unordered_map<QString,Netizen>& nc=new_cache.getCacheConst();
+        for(auto it = nc.begin(); it != nc.end(); ++it){
+            QString netizenId;
+            QString password;
+            QString nickname;
+            QString profile;
+            QList<QString> concerns;
+            QList<QString> fans;
+            QList<QString> notes;
+            QList<QString> footmark;
+            Netizen &netizen=it->second;
+            netizen.getInfo(netizenId,password,nickname,profile);
+            netizen.getConcernList(concerns);
+            netizen.getFanList(fans);
+            netizen.getNoteList(notes);
+            netizen.getFootmarkList(footmark);
+            std::string cmd="insert ignore into netizen(id,password,nickname,profile_photo,concerns,fans,notes) value(\""+netizenId.toStdString()+"\",\""+password.toStdString()+"\",\""+nickname.toStdString()+"\",\""+profile.toStdString()+"\","+std::to_string(concerns.size())+","+std::to_string(fans.size())+","+std::to_string(notes.size())+")";
             insert(cmd);
+            for(auto netizen:concerns){
+                QString id=netizenId+netizen;
+                std::string cmd="insert ignore into netizen_concerns(id,netizen_id,concern_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
+                qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto netizen:fans){
+                QString id=netizenId+netizen;
+                std::string cmd="insert ignore into netizen_fans(id,netizen_id,fan_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto note:footmark){
+                QString id=netizenId+note;
+                std::string cmd="insert ignore into checked_note(id,netizen_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto note:notes){
+                QString id=netizenId+note;
+                std::string cmd="insert ignore into published_note(id,blogger_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
         }
-        for(auto netizen:fans){
-            QString id=netizenId+netizen;
-            std::string cmd="insert into netizen_fans(id,netizen_id,fan_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
-            insert(cmd);
+        new_cache.clearCache();
+        //将oldDirty_cache中被修改的（数据库中原本存在但现在被修改）数据更新到数据库
+        std::unordered_map<QString,Netizen>& odirtyc=oldDirty_cache.getCacheConst();
+        for(auto it = odirtyc.begin(); it != odirtyc.end(); ++it){
+            QString netizenId;
+            QString password;
+            QString nickname;
+            QString profile;
+            QList<QString> concerns;
+            QList<QString> fans;
+            QList<QString> notes;
+            QList<QString> footmark;
+            Netizen &netizen=it->second;
+            netizen.getInfo(netizenId,password,nickname,profile);
+            netizen.getConcernList(concerns);
+            netizen.getFanList(fans);
+            netizen.getNoteList(notes);
+            netizen.getFootmarkList(footmark);
+            std::string cmd="update netizen set password=\""+password.toStdString()+"\",nickname=\""+nickname.toStdString()+"\",profile_photo=\""+profile.toStdString()+"\",concerns="+std::to_string(concerns.size())+",fans="+std::to_string(fans.size())+",notes="+std::to_string(notes.size())+" where id=\""+netizenId.toStdString()+"\"";
+            update(cmd);
+            for(auto netizen:concerns){
+                QString id=netizenId+netizen;
+                std::string cmd="insert ignore into netizen_concerns(id,netizen_id,concern_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto netizen:fans){
+                QString id=netizenId+netizen;
+                std::string cmd="insert ignore into netizen_fans(id,netizen_id,fan_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto note:footmark){
+                QString id=netizenId+note;
+                std::string cmd="insert ignore into checked_note(id,netizen_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
+            for(auto note:notes){
+                QString id=netizenId+note;
+                std::string cmd="insert ignore into published_note(id,blogger_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
+                        qDebug() << cmd << '\n';
+                insert(cmd);
+            }
         }
-        for(auto note:footmark){
-            QString id=netizenId+note;
-            std::string cmd="insert into checked_note(id,netizen_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
-            insert(cmd);
+        oldDirty_cache.clearCache();
+        //将oldDelete_cache中被删除的（数据库中原本存在但现在被删除）数据更新到数据库
+        std::unordered_map<QString,Netizen>& odeletec=oldDelete_cache.getCacheConst();
+        for(auto it = odeletec.begin(); it != odeletec.end(); ++it){
+            Netizen &netizen=it->second;
+            QString netizenId=netizen.id();
+            std::string cmd="delete from netizen where id=\""+netizenId.toStdString()+"\"";
+                    qDebug() << cmd << '\n';
+            drop(cmd);
         }
-        for(auto note:notes){
-            QString id=netizenId+note;
-            std::string cmd="insert into published_note(id,blogger_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
-            insert(cmd);
-        }
+        oldDelete_cache.clearCache();
+        //更新oldClean_cache
+        initCache();
     }
-    new_cache.clearCache();
-    //将oldDirty_cache中被修改的（数据库中原本存在但现在被修改）数据更新到数据库
-    std::unordered_map<QString,Netizen>& odirtyc=oldDirty_cache.getCacheConst();
-    for(auto it = odirtyc.begin(); it != odirtyc.end(); ++it){
-        QString netizenId;
-        QString password;
-        QString nickname;
-        QString profile;
-        QList<QString> concerns;
-        QList<QString> fans;
-        QList<QString> notes;
-        QList<QString> footmark;
-        Netizen &netizen=it->second;
-        netizen.getInfo(netizenId,password,nickname,profile);
-        netizen.getConcernList(concerns);
-        netizen.getFanList(fans);
-        netizen.getNoteList(notes);
-        netizen.getFootmarkList(footmark);
-        std::string cmd="update netizen set password=\""+password.toStdString()+"\",nickname=\""+nickname.toStdString()+"\",profile_photo=\""+profile.toStdString()+"\",concerns="+std::to_string(concerns.size())+",fans="+std::to_string(fans.size())+",notes="+std::to_string(notes.size())+" where id=\""+netizenId.toStdString()+"\"";
-        update(cmd);
-        for(auto netizen:concerns){
-            QString id=netizenId+netizen;
-            std::string cmd="insert into netizen_concerns(id,netizen_id,concern_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
-            insert(cmd);
-        }
-        for(auto netizen:fans){
-            QString id=netizenId+netizen;
-            std::string cmd="insert into netizen_fans(id,netizen_id,fan_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+netizen.toStdString()+"\")";
-            insert(cmd);
-        }
-        for(auto note:footmark){
-            QString id=netizenId+note;
-            std::string cmd="insert into checked_note(id,netizen_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
-            insert(cmd);
-        }
-        for(auto note:notes){
-            QString id=netizenId+note;
-            std::string cmd="insert into published_note(id,blogger_id,note_id) value(\""+id.toStdString()+"\",\""+netizenId.toStdString()+"\",\""+note.toStdString()+"\")";
-            insert(cmd);
-        }
-    }
-    oldDirty_cache.clearCache();
-    //将oldDelete_cache中被删除的（数据库中原本存在但现在被删除）数据更新到数据库
-    std::unordered_map<QString,Netizen>& odeletec=oldDelete_cache.getCacheConst();
-    for(auto it = odeletec.begin(); it != odeletec.end(); ++it){
-        Netizen &netizen=it->second;
-        QString netizenId=netizen.id();
-        std::string cmd="delete from netizen where id=\""+netizenId.toStdString()+"\"";
-        drop(cmd);
-    }
-    oldDelete_cache.clearCache();
-    //更新oldClean_cache
-    initCache();
+
+}
+
+void NetizenBroker::start_thread()
+{
+    m_sycn_thread=new std::thread(&NetizenBroker::sycn,this);
 }
