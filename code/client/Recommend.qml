@@ -1,29 +1,9 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 Item {
-    Connections {
-        target: control
-        function onGetPublishResult(res){
-            if(res){
-                //提示笔记发布成功
-                console.log("发布成功")
-            }else{
-                //提示笔记发布失败
-                console.log("发布失败")
-            }
-        }
-    }
     Rectangle{
         anchors.fill: parent
         color:"#009688"
-
-//        Connections {
-//            target: control
-//            function onGetNewNotes(newNotes){
-//                //grid.mod=newNotes;
-//            }
-//        }
-
         GridView {
             id:grid
             anchors.fill: parent
@@ -35,7 +15,7 @@ Item {
             property bool needReflesh:false
             property bool needLoadMore:false
             delegate: Rectangle {
-                property int id_:modelData[0]
+                property string id_:modelData[0]
                 radius: 10
                 width: grid.cellWidth-5
                 height:grid.cellHeight-5
@@ -80,7 +60,7 @@ Item {
                 }
                 Image {
                     id: profileImg
-                    source:"image://material/" + modelData[5];
+                    source:"image://profile/" + modelData[5];
                     width: 50
                     height: 50
                     anchors.left: parent.left
@@ -118,9 +98,11 @@ Item {
                 }
                 TapHandler{
                     onTapped: {
-                        control.requestNoteDetail(id_);
                         var detail_data=[profileImg.source,nicknameText.text,titleText.text,id_,material.source,modelData[1]]
                         stack.push("NoteDetailPage.qml",{"data":detail_data})
+
+                        control.requestNoteDetail(id_);
+                        control.requestCommentDetail(id_,0);
                     }
                 }
 

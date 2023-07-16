@@ -5,7 +5,8 @@ import QtQuick.Layouts
 
 Dialog {
     id:dialog
-    property string contentText: "用户名或密码输入错误"
+    property alias text:dialog.contentText
+    property string contentText
     property color backgroundColor: "#404040"
     property color textColor: "white"
 

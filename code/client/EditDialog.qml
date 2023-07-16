@@ -10,7 +10,70 @@ Page {
         anchors.fill: parent
         color:"#fdfbfb"
     }
+    InfoDialog {
+        id:errorDialog
+        width: root.width*0.6
+        height: root.width*0.5
+        visible:false
+        onClosed: {
+            errorDialog.visible=false;
+        }
+    }
+    Popup{
+        id:publishNote_result
+        width: 200
+        height:160
+        anchors.centerIn: parent
+        modal: true
+        focus: true
+        //closePolicy: Popup.CloseOnPressOutside
+        background: Rectangle{
+            anchors.fill: parent
+            radius: 20
+            color: "white"
+        }
+        Text{
 
+            id:publishNote_result_text
+            color: "gray"
+            anchors.fill: parent
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+
+        }
+
+        Timer {
+            id:note_timer;
+            interval: 2000 // 设置3秒钟的超时时间
+            repeat: true
+            onTriggered:{
+                publishNote_result.close() // 触发时关闭Popup
+                note_timer.running=false
+                if(publishNote_result_text.text==="发布成功"){
+                    stack.clear()
+                }
+            }
+            running: true // 启动计时器
+        }
+    }
+
+    Connections {
+        target: control
+        function onGetPublishNoteResult(res){
+            if(res){
+                //提示发布成功，关闭发布笔记的编辑框
+                publishNote_result_text.text="发布成功"
+                publishNote_result.open();
+                note_timer.running=true;
+
+            }else{
+                //提示发布失败，停留在发布笔记的编辑框
+                publishNote_result_text.text="发布失败"
+                publishNote_result.open();
+                note_timer.running=true;
+            }
+        }
+    }
     Rectangle{
         id:title
         color: "#fdfbfb"
@@ -31,30 +94,38 @@ Page {
                 color: "#fdfbfb"
             }
             anchors.right: parent.right
-            width: 40
+            width: height
             show:"qrc:/UI/icon/checkmark.svg"
             icon_color:"#009688"
             onClicked: {
                 //console.log(textfield_title.text)
                 //如果内容和素材都为空
-                if(textarea_content.text===""&&pics===[])//------>提示用户必须选择一个输入
+//                console.log(textarea_content.text==="")
+//                console.log(pics.length==0);
+                if(textarea_content.text===""&pics.length==0)//------>提示用户必须选择一个输入
                 {
+
+                    errorDialog.text="发布内容不能为空，内容和图片至少填写一个"
+                    errorDialog.visible=true;
                     return;
                 }
-                //如果只有图片，自动添加标题“分享图片”
-                if(textfield_title.text===""&&textarea_content.text==="")
+                else
                 {
-                    textfield_title.text="分享图片"
-                }
-                //如果有内容但没有标题，标题为内容的前二十个字
-                if(textarea_content.text!==""&&textfield_title.text==="")
-                {
-                    console.log("内容不为空但标题空")
-                    textfield_title.text=textarea_content.text.substring(0,20)
-                }
-                control.requestPublishNote(textfield_title.text,textarea_content.text,pics);
+                    //如果只有图片，自动添加标题“分享图片”
+                    if(textfield_title.text===""&&textarea_content.text==="")
+                    {
+                        textfield_title.text="分享图片"
+                    }
+                    //如果有内容但没有标题，标题为内容的前二十个字
+                    if(textarea_content.text!==""&&textfield_title.text==="")
+                    {
+                        console.log("内容不为空但标题空")
+                        textfield_title.text=textarea_content.text.substring(0,20)
+                    }
+                    control.requestPublishNote(textfield_title.text,textarea_content.text,pics);
 
-                stack.clear()
+
+                }
             }
         }
         MyButton{
@@ -65,7 +136,7 @@ Page {
                 color: "#fdfbfb"
             }
             anchors.left: parent.left
-            width: 40
+            width: height
             show:"qrc:/UI/icon/cross.svg"
             icon_color:"#596164"
             onClicked: {

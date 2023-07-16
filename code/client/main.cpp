@@ -13,8 +13,9 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("control", control);
-    engine.addImageProvider("material", control->getImageProvider());
-   // qmlRegisterType<Control>("com.qt.control", 1, 0, "Control");
+    //engine.addImageProvider("material", control->getImageProvider());
+    engine.addImageProvider("material", control->getMaterialProvider());
+    engine.addImageProvider("profile", control->getProfileProvider());
 
     const QUrl url(u"qrc:/client/Login.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,

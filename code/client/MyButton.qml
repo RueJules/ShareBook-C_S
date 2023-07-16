@@ -9,8 +9,8 @@ TabButton{
     anchors.bottom:parent.bottom
     Image{
         id:image
-        height: parent.height-30
-        width: parent.height-30
+        height: parent.height-20
+        width: parent.height-20
         anchors.centerIn: parent
     }
     ColorOverlay {

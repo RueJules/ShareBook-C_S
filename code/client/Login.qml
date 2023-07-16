@@ -23,6 +23,19 @@ ApplicationWindow {
         source: "Main.qml"
         visible: false
     }
+    StackView{
+        id:stack
+        anchors.fill: parent
+        transform: Translate{ id:translate }
+        PropertyAnimation {
+            id:enter
+            target: translate
+            property: "y"
+            from: 1000
+            to: 0
+            duration: 300
+        }
+    }
     Column {
         id:column
         spacing: 20
@@ -94,7 +107,7 @@ ApplicationWindow {
             }
             onClicked: {
                 // 登录逻辑处理
-                if(usernameInput.text!==""&&passwordInput.text!==""){
+                if(usernameInput.text!==""&passwordInput.text!==""){
                     var nickname=usernameInput.text;
                     var password=passwordInput.text;
                     control.requestLogin(nickname,password);
@@ -124,6 +137,7 @@ ApplicationWindow {
                 control.requestNotes()
             }else{
                 //提示信息错误
+                errorDialog.text="用户名或密码输入错误"
                 errorDialog.visible=true;
             }
         }

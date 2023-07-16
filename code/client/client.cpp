@@ -23,12 +23,6 @@ Client::Client(boost::asio::io_service &io_service, const std::string &host, con
 
 void Client::do_write(QByteArray data) {
 
-//    if(data==default_data)
-//    {
-//        //sleep(3);
-//        do_read();
-//        return;
-//    }
     std::lock_guard<std::mutex> lock(write_mutex);
     qDebug()<<data;
     //read_buffer.consume(read_buffer.size());
@@ -68,17 +62,23 @@ void Client::do_read() {
             QString function=obj["function"].toString();
             qDebug()<<Qt::endl<<"**********************"<<"::"<<function<<"::"<<Qt::endl;
             if(function=="login"){
-                control->receiveLoginInfo(bytes);
+                control->receiveLoginInfo(obj);
             }
             if(function=="view"){
-                control->receiveNotes(bytes);
+                control->receiveNotes(obj);
 
             }
             if(function=="check"){
-                control->receiveNoteDetail(bytes);
+                control->receiveNoteDetail(obj);
             }
             if(function=="publish"){
-                control->receivePublishNote(bytes);
+                control->receivePublishNote(obj);
+            }
+            if(function=="publish_comment"){
+                control->receivePublishComment(obj);
+            }
+            if(function=="check_comment"){
+                control->receiveCommentDetail(obj);
             }
 //            qDebug()<<read_buffer.size();
 //            qDebug()<<length;

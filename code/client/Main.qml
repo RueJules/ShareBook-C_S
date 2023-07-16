@@ -10,25 +10,13 @@ Page {
         source:"Home.qml"
 
     }
-    StackView{
-        id:stack
-        anchors.fill: parent
-        transform: Translate{ id:translate }
-        PropertyAnimation {
-            id:enter
-            target: translate
-            property: "y"
-            from: 1000
-            to: 0
-            duration: 300
-        }
-    }
 
     footer:Rectangle{
-            width: root.width
-            height:50
-            color:"white"
-            TabBar {
+        id:footer
+        width: root.width
+        height:50
+        color:"white"
+        TabBar {
             id:tabBar
             anchors.fill: parent
             currentIndex:0

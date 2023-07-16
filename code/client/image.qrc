@@ -12,5 +12,9 @@
         <file>UI/icon/return.svg</file>
         <file>UI/icon/search.svg</file>
         <file>UI/default/2991e08f0e0926a5424c8cb73bca7742.png</file>
+        <file>UI/icon/bubble.svg</file>
+        <file>UI/icon/heart.svg</file>
+        <file>UI/icon/star-full.svg</file>
+        <file>UI/icon/pencil.svg</file>
     </qresource>
 </RCC>
