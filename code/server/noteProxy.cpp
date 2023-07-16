@@ -33,3 +33,8 @@ QJsonObject NoteProxy::getNoteDetails()
     }
     return m_note->getNoteDetails();
 }
+
+void NoteProxy::addComment(QString commentId)
+{
+
+}

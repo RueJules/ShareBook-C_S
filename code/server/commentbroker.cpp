@@ -131,6 +131,7 @@ void CommentBroker::initCache()
         //        m_cache.addToCache(id,std::move(temp));
         old_clean_cache.addToCache(id,std::move(temp));
     }
+    qDebug() << "comment inint finish !\n";
 
 }
 
@@ -221,21 +222,20 @@ void CommentBroker::old_delete_cache_sycn()
 
 void CommentBroker::sycn()
 {
-    while(true){
-        std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
-        std::lock_guard<std::mutex> lock(commentBrokerMutex);
-        new_cache_sycn();
-        old_dirty_cache_sycn();
-        old_delete_cache_sycn();
-        old_delete_cache.clearCache();
-        old_clean_cache.clearCache();
-        old_dirty_cache.clearCache();
-        new_cache.clearCache();
-        initCache();
-    }
-}
-void CommentBroker::start_thread()
-{
-    m_sycn_thread=new std::thread(&CommentBroker::sycn,this);
+    qDebug()<<"commentBroker的同步--------------------------------------------------------------------";
+
+    new_cache_sycn();
+    old_dirty_cache_sycn();
+    old_delete_cache_sycn();
+    old_delete_cache.clearCache();
+    old_clean_cache.clearCache();
+    old_dirty_cache.clearCache();
+    new_cache.clearCache();
+    initCache();
 
 }
+//void CommentBroker::start_thread()
+//{
+//    m_sycn_thread=new std::thread(&CommentBroker::sycn,this);
+
+//}

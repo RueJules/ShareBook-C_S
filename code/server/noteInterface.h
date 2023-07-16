@@ -15,6 +15,7 @@ public:
     QString get_Id() const;
     virtual QJsonObject getNoteAbstract() = 0;
     virtual QJsonObject getNoteDetails() = 0;
+    virtual void addComment(QString commentId)=0;
 private:
     QString m_id;
 

@@ -13,6 +13,7 @@ public:
     void addMaterial(int order,MaterialProxy &&material)override;
     QJsonObject getNoteAbstract() override;
     QJsonObject getNoteDetails() override;
+    void addComment(QString commentId) override;
 
 private:
      std::unique_ptr<Note> m_note;

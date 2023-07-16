@@ -22,12 +22,12 @@ public:
     void initCache();//同步数据库，把数据库的内容写到cache里
     QByteArray getNotes(QString netizenId);
     void sycn();//同步数据库，把cache的内容写回数据库
-    void start_thread();
+   // void start_thread();
 private:
     NoteBroker();
     static std::shared_ptr<NoteBroker> s_noteBroker;
     static std::mutex noteBrokerMutex;
-    std::thread * m_sycn_thread;
+    //std::thread * m_sycn_thread;
 
     Cache<Note>newCache;
     Cache<Note>old_clean_cache;

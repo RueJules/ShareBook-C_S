@@ -20,14 +20,16 @@ public:
     void createNetizen(QJsonObject netizenObject);  
     void initCache();//同步数据库，把数据库的内容写到cache里
     void sycn();//同步数据库，把cache的内容写回数据库
-    void start_thread();
+    void sycn_signIn();
+    //void start_thread();
+    void oldClean_To_oldD(QString netizenID);
 
 private:
 
     NetizenBroker();
     static std::shared_ptr<NetizenBroker> s_netizenBroker;
     static std::mutex netizenBrokerMutex;
-    std::thread * m_sycn_thread;
+    //std::thread * m_sycn_thread;
 
     Cache<Netizen>new_cache;
     Cache<Netizen>oldClean_cache;

@@ -5,9 +5,10 @@
 #include <QJsonObject>
 #include <netizenBroker.h>
 
+//Note::Note(QString id, QString title, QString content, QDateTime time, int materialCount, QString blogger):NoteInterface{id},m_title{title},m_content{content},m_time{time},m_materials{materialCount},m_bloggerId{blogger},m_commentList{std::move(comments)}
+//{}
 Note::Note(QString id, QString title, QString content, QDateTime time, int materialCount, QString blogger):NoteInterface{id},m_title{title},m_content{content},m_time{time},m_materials{materialCount},m_bloggerId{blogger}
 {}
-
 
 void Note::addMaterial(int order, MaterialProxy &&material)
 {
@@ -21,7 +22,12 @@ QJsonObject Note::getNoteAbstract()
     //需要在这里找到笔记的博主信息(头像、昵称)，第一张素材的信息(顺序，图片数据)和笔记的标题、时间
     Netizen *netizen = NetizenBroker::getInstance()->findById(m_bloggerId);
     QJsonObject netizenJson = netizen->getAbstract();
-    QJsonObject materialJson = m_materialList.begin()->second.getDetails();
+    QJsonObject materialJson;
+    if(!m_materialList.empty())
+    {
+        materialJson = m_materialList.begin()->second.getDetails();
+    }
+
 
     //QString id = get_Id();
     noteAbs = {
@@ -66,10 +72,15 @@ QJsonObject Note::toDB()
         {"title",m_title},
         {"content",m_content},
         {"materials",m_materials},
-        {"time",m_time.toString()},
+        {"time",m_time.toString("yyyyMMddhhmmss")},
         {"blogger",m_bloggerId}
     };
     return note;
+}
+
+void Note::addComment(QString commentId)
+{
+    m_commentList.push_front(commentId);
 }
 
 

@@ -34,14 +34,14 @@ std::shared_ptr<NoteBroker> NoteBroker::getInstance()
 
 Note *NoteBroker::findById(QString noteId)
 {
-    if(old_clean_cache.inCache(noteId)){
+    if(newCache.inCache(noteId)){
 
-        return &old_clean_cache.getFromCache(noteId);
+        return &newCache.getFromCache(noteId);
     }
     else{
-        if(newCache.inCache(noteId))
+        if(old_clean_cache.inCache(noteId))
         {
-            return &newCache.getFromCache(noteId);
+            return &old_clean_cache.getFromCache(noteId);
 
         }else{
 
@@ -95,11 +95,12 @@ bool NoteBroker::createNote(QJsonObject noteObject)
         QString netizenId=noteObject["netizenId"].toString();
         int materials=noteObject["materialCount"].toInt();
         QDateTime time=QDateTime::currentDateTime();
+        qDebug() << materials << "!!!!!!!!\n";
         //在服务端新建note实例
         Note note(noteId,title,content,time,materials,netizenId);
         //读素材列表
         QStringList uuidlist=noteObject["materials"].toObject().keys();
-         QJsonObject materialsJson=noteObject["materials"].toObject();
+        QJsonObject materialsJson=noteObject["materials"].toObject();
         for(const auto &uuid:uuidlist){
             QJsonObject oneMaterial=materialsJson[uuid].toObject();
             MaterialProxy mp(uuid);
@@ -132,14 +133,20 @@ void NoteBroker::initCache()
         QString title = QString::fromStdString(res_n->getString(2).c_str());
         QString content = QString::fromStdString(res_n->getString(3).c_str());
         int materials = res_n->getInt(4);
-        std::string t = res_n->getString("time").c_str();
+        std::string t = res_n->getString(5).c_str();
         QDateTime time=QDateTime::fromString(QString::fromStdString(t),"yyyy-MM-dd hh:mm:ss");
         QString bloggerId=QString::fromStdString(res_n->getString(6).c_str());
+
+        //初始化这条笔记的所有评论列表
+//        QList<QString> commentIds;
+//        std::string cmd_cmt= "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
+//        sql::ResultSet *set_cmt = query(cmd_m);
+
         Note note(noteId, title, content,time,materials,bloggerId);
 
+        //初始化笔记关联的materialproxy（material ids）
         std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
         sql::ResultSet *set_m = query(cmd_m);
-        //初始化笔记关联的materialproxy（material ids）
         while(set_m->next())
         {
             QString id = QString::fromStdString(set_m->getString(1).c_str());
@@ -147,6 +154,7 @@ void NoteBroker::initCache()
             MaterialProxy mp(id);
             note.addMaterial(order, std::move(mp));
         }
+
         old_clean_cache.addToCache(noteId, std::move(note));
     }
     qDebug() << "note init finish!\n";
@@ -160,49 +168,55 @@ QByteArray NoteBroker::getNotes(QString netizenId)
     QList<QString> noteList;
     netizen->getNoteList(noteList);
 
+    qDebug() << noteList<<Qt::endl;
+
     //在三个cache里面获取一定数量的笔记
-    old_clean_cache.getSome(noteList, list);
     newCache.getSome(noteList,list);
+    if(list.size() > 0)
+    {
+        qDebug() << "找到了！\n";
+    }
+    old_clean_cache.getSome(noteList, list);
     old_dirty_cache.getSome(noteList, list);
 
     qDebug() << "length!!!!!!!!!!!!!!!!!!!!"<<list.length() <<'\n';
 
     //如果在三个缓存里面找到的数量不足，就去数据库里面找，但有可能这里始终也不需要
-    if(list.length() < FIND_COUNT){
-        //数据库里在找剩下的几条
-        int differrence = FIND_COUNT - list.length();
-//        std::string cmd = "select * from note where blogger!=\"" + netizenId.toStdString() + "\" LIMIT " + std::to_string(differrence);
-        std::string cmd = "select * from note where blogger!=\"" + std::to_string(1) + "\" LIMIT " + std::to_string(differrence);
+//    if(list.length() < FIND_COUNT){
+//        //数据库里在找剩下的几条
+//        int differrence = FIND_COUNT - list.length();
+// //        std::string cmd = "select * from note where blogger!=\"" + netizenId.toStdString() + "\" LIMIT " + std::to_string(differrence);
+//        std::string cmd = "select * from note where blogger!=\"" + std::to_string(1) + "\" LIMIT " + std::to_string(differrence);
 
-        qDebug() << "sql语句！！！！！！！！！！！1"<<cmd <<'\n';
+//        qDebug() << "sql语句！！！！！！！！！！！1"<<cmd <<'\n';
 
-        sql::ResultSet *notesDiff = query(cmd);
+//        sql::ResultSet *notesDiff = query(cmd);
 
-        while(notesDiff->next()){
-            QString noteId = QString::fromStdString(notesDiff->getString(1).c_str());
-            QString title=QString::fromStdString(notesDiff->getString(2).c_str());
-            QString content=QString::fromStdString(notesDiff->getString(3).c_str());
-            int materials=notesDiff->getInt(4);
-            std::string t = notesDiff->getString("time").c_str();
-            QDateTime time=QDateTime::fromString(QString::fromStdString(t),"yyyy-MM-dd hh:mm:ss");
-            QString bloggerId=QString::fromStdString(notesDiff->getString(6).c_str());
-            Note note(noteId, title, content,time,materials,bloggerId);
+//        while(notesDiff->next()){
+//            QString noteId = QString::fromStdString(notesDiff->getString(1).c_str());
+//            QString title=QString::fromStdString(notesDiff->getString(2).c_str());
+//            QString content=QString::fromStdString(notesDiff->getString(3).c_str());
+//            int materials=notesDiff->getInt(4);
+//            std::string t = notesDiff->getString("time").c_str();
+//            QDateTime time=QDateTime::fromString(QString::fromStdString(t),"yyyy-MM-dd hh:mm:ss");
+//            QString bloggerId=QString::fromStdString(notesDiff->getString(6).c_str());
+//            Note note(noteId, title, content,time,materials,bloggerId);
 
-            std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
-            sql::ResultSet *set_m = query(cmd_m);
-            while(set_m->next()){
-                QString id = QString::fromStdString(set_m->getString(1).c_str());
-                int order = set_m->getInt("number");
-                MaterialProxy mp(id);
-                note.addMaterial(order, std::move(mp));
-            }
+//            std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
+//            sql::ResultSet *set_m = query(cmd_m);
+//            while(set_m->next()){
+//                QString id = QString::fromStdString(set_m->getString(1).c_str());
+//                int order = set_m->getInt("number");
+//                MaterialProxy mp(id);
+//                note.addMaterial(order, std::move(mp));
+//            }
 
-            //加到缓存
-            newCache.addToCache(noteId,std::move(note));
-            list.emplace_back(&newCache.getFromCache(noteId));
-        }
+//            //加到缓存
+//            newCache.addToCache(noteId,std::move(note));
+//            list.emplace_back(&newCache.getFromCache(noteId));
+//        }
 
-    }
+//    }
 
     //QJsonObject notesJson;
     //QJsonDocument notesDoc;
@@ -226,62 +240,64 @@ QByteArray NoteBroker::getNotes(QString netizenId)
 
 void NoteBroker::sycn()
 {
-    while(true){
-        std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
-        std::lock_guard<std::mutex> lock(noteBrokerMutex);
-        std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
-        std::unordered_map<QString,Note> &mapFromODCache = old_dirty_cache.getCacheConst();
-        std::unordered_map<QString,Note> &mapFromODECache = old_deleted_cache.getCacheConst();
 
-        //newCache内包括了脏的
-        for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
-        {
-            //更新note表
-            Note &note = it->second;
-            QJsonObject oneNote =note.toDB();
-            QString id = oneNote["id"].toString();
-            QString title = oneNote["title"].toString();
-            QString content = oneNote["content"].toString();
-            int materials = oneNote["materials"].toInt();
-            QString time = oneNote["time"].toString("yyyyMMddhhmmss");
-            QString blogger = oneNote["blogger"].toString();
-            std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
-            insert(cmd);
-                    qDebug() << cmd << '\n';
-        }
-        for(auto it = mapFromODCache.begin();it != mapFromODCache.end(); ++it)
-        {
-            //更新note表
-            Note &note = it->second;
-            QJsonObject oneNote =note.toDB();
-            QString id = oneNote["id"].toString();
-            QString title = oneNote["title"].toString();
-            QString content = oneNote["content"].toString();
-            int materials = oneNote["materials"].toInt();
-            QString time = oneNote["time"].toString();
-            QString blogger = oneNote["blogger"].toString();
-            std::string cmd = "update note set title=\""+title.toStdString() + "\",set content=\"" + content.toStdString() +"\",set materials=" + std::to_string(materials)+",set time=\"" +        time.toStdString() + "\",set blogger=\"" + blogger.toStdString()+ "\"where id=\"" + id.toStdString() + "\"";
-            update(cmd);
-                    qDebug() << cmd << '\n';
-        }
-        for(auto it = mapFromODECache.begin();it != mapFromODECache.end(); ++it)
-        {
-            //更新note表
-            Note &note = it->second;
-            QJsonObject oneNote =note.toDB();
-            QString id = oneNote["id"].toString();
-            std::string cmd = "delete from note where id=\"" + id.toStdString() + "\"";
-            drop(cmd);
-                    qDebug() << cmd << '\n';
-        }
-        //同步完成，再次初始化old_clean_cache
-        initCache();
+    std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
+    std::unordered_map<QString,Note> &mapFromODCache = old_dirty_cache.getCacheConst();
+    std::unordered_map<QString,Note> &mapFromODECache = old_deleted_cache.getCacheConst();
+    qDebug()<<"note的同步--------------------------------------------------------------------";
+    //newCache内包括了脏的
+    for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
+    {
+        //更新note表
+        Note &note = it->second;
+        QJsonObject oneNote =note.toDB();
+        QString id = oneNote["id"].toString();
+        QString title = oneNote["title"].toString();
+        QString content = oneNote["content"].toString();
+        int materials = oneNote["materials"].toInt();
+        QString time = oneNote["time"].toString();
+        QString blogger = oneNote["blogger"].toString();
+        std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
+        insert(cmd);
+        qDebug() << cmd << '\n';
     }
+    for(auto it = mapFromODCache.begin();it != mapFromODCache.end(); ++it)
+    {
+        //更新note表
+        Note &note = it->second;
+        QJsonObject oneNote =note.toDB();
+        QString id = oneNote["id"].toString();
+        QString title = oneNote["title"].toString();
+        QString content = oneNote["content"].toString();
+        int materials = oneNote["materials"].toInt();
+        QString time = oneNote["time"].toString();
+        QString blogger = oneNote["blogger"].toString();
+        std::string cmd = "update note set title=\""+title.toStdString() + "\",set content=\"" + content.toStdString() +"\",set materials=" + std::to_string(materials)+",set time=\"" +        time.toStdString() + "\",set blogger=\"" + blogger.toStdString()+ "\"where id=\"" + id.toStdString() + "\"";
+        update(cmd);
+        qDebug() << cmd << '\n';
+    }
+    for(auto it = mapFromODECache.begin();it != mapFromODECache.end(); ++it)
+    {
+        //更新note表
+        Note &note = it->second;
+        QJsonObject oneNote =note.toDB();
+        QString id = oneNote["id"].toString();
+        std::string cmd = "delete from note where id=\"" + id.toStdString() + "\"";
+        drop(cmd);
+        qDebug() << cmd << '\n';
+    }
+    //同步完成，再次初始化old_clean_cache
+    newCache.clearCache();
+    old_clean_cache.clearCache();
+    old_dirty_cache.clearCache();
+    old_deleted_cache.clearCache();
+    initCache();
+
 }
 
-void NoteBroker::start_thread()
-{
-    m_sycn_thread=new std::thread(&NoteBroker::sycn,this);
-}
+//void NoteBroker::start_thread()
+//{
+//    m_sycn_thread=new std::thread(&NoteBroker::sycn,this);
+//}
 
 

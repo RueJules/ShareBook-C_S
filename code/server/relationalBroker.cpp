@@ -1,4 +1,8 @@
 #include "relationalBroker.h"
+#include "netizenBroker.h"
+#include "noteBroker.h"
+#include "commentbroker.h"
+#include "materialBroker.h"
 #include <iostream>
 #include <QDebug>
 #include<string>
@@ -7,16 +11,16 @@ std::unique_ptr<sql::Connection> RelationalBroker::m_conn=NULL;
 
 RelationalBroker::RelationalBroker()
 {
-    //安装驱动
-    sql::Driver* driver = sql::mariadb::get_driver_instance();
+//    //安装驱动
+//    sql::Driver* driver = sql::mariadb::get_driver_instance();
 
-    //配置连接
-    sql::SQLString url("jdbc:mariadb://10.252.49.215:3306/ShareBook");
-    sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
+//    //配置连接
+//    sql::SQLString url("jdbc:mariadb://10.252.49.215:3306/ShareBook");
+//    sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
 
-    //建立连接
-    std::unique_ptr<sql::Connection> conn(driver->connect(url, properties));
-    m_conn=std::move(conn);
+//    //建立连接
+//    std::unique_ptr<sql::Connection> conn(driver->connect(url, properties));
+//    m_conn=std::move(conn);
 
     //qDebug() << "over\n";
 }
@@ -34,6 +38,10 @@ void RelationalBroker::initDataBase()
     std::unique_ptr<sql::Connection> conn(driver->connect(url, properties));
     m_conn=std::move(conn);
 
+    NetizenBroker::getInstance()->initCache();
+    NoteBroker::getInstance()->initCache();
+    CommentBroker::getInstance()->initCache();
+    MaterialBroker::getInstance()->initCache();
     //qDebug() << "over\n";
 
 }
@@ -87,5 +95,17 @@ void RelationalBroker::drop(std::string cmd)
 
     }catch(sql::SQLException& e){
         std::cerr << "Error selecting tasks: " << e.what() << std::endl;
+    }
+}
+
+void RelationalBroker::sycn()
+{
+    while(true){
+        std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
+        NetizenBroker::getInstance()->sycn_signIn();
+        NoteBroker::getInstance()->sycn();
+        NetizenBroker::getInstance()->sycn();
+        CommentBroker::getInstance()->sycn();
+        MaterialBroker::getInstance()->sycn();
     }
 }

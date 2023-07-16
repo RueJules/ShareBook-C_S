@@ -107,6 +107,9 @@ QByteArray Control::dealRequestPublishNote(QByteArray data)
         Netizen *blogger=NetizenBroker::getInstance()->findById(noteDetailInfo["netizenId"].toString());
         if(blogger){
             blogger->addNote(noteDetailInfo["noteId"].toString(),std::move( NoteProxy(noteDetailInfo["noteId"].toString())));
+
+            //把这个blogger要移入oldDirty_cache
+            NetizenBroker::getInstance()->oldClean_To_oldD(blogger->id());
         }
 
         qDebug() << "material:  "<<materialsCreated <<"note: " <<  noteCreated << Qt::endl;

@@ -4,13 +4,15 @@
 #include <memory>
 #include <string>
 #include "cache.h"
-#define FRESH_TIME 10
+#define FRESH_TIME 60
 class RelationalBroker
 {
 public:
     RelationalBroker();
 
     void initDataBase();//访问远程已经完成建立好的数据库，改操作在此版本不再需要
+    void sycn();
+
 
     sql::ResultSet *query(std::string cmd);
     void insert(std::string cmd);

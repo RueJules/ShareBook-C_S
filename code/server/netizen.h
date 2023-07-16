@@ -24,8 +24,8 @@ public:
     void addFan(QString fanId, NetizenProxy &&fan) override;//添加新的分析
     void addConcern(QString concernId, NetizenProxy &&concern) override;//添加新的关注
     void addFootMark(QString checkNoteId, NoteProxy &&checkNote) override;
-    void getNoteList(QList<QString> &notesId);
 
+    void getNoteList(QList<QString> &notesId);
     void getFootmarkList(QList<QString> &notesId);
     void getConcernList(QList<QString> &netizensId);
     void getFanList(QList<QString> &netizensId);

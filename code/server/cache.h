@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <QDebug>
 #include <mutex>
-#define FIND_COUNT 3
+#define FIND_COUNT 8
 
 template<typename T>
 class Cache
@@ -54,6 +54,7 @@ public:
         //question:加入缓存中的数据无法读取。
         qDebug() << "cachesize:"<<cache.size() << '\n';
         cache.emplace_hint(cache.begin(),id,std::move(entity));
+        qDebug() << "added cachesize:"<<cache.size() << '\n';
     }
     void  getSome(QList<QString> &listCompare, QList<T*> &list){
 
@@ -69,7 +70,9 @@ public:
             }
         }
     }
-
+    int size(){
+        return cache.size();
+    }
 private:
     std::unordered_map<QString,T> cache;
     std::mutex cacheMutex;
