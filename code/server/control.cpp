@@ -150,6 +150,9 @@ QByteArray Control::dealRequestPublishComment(QByteArray data)
     QJsonObject jObj = Jdoc.object();
     bool commentPublished = false ;
     commentPublished= CommentBroker::getInstance()->createComment(jObj);
+    Note *note = NoteBroker::getInstance()->findById(jObj["noteId"].toString());
+
+    note->addComment(jObj["commentId"].toString());
 
     //返回处理结果
     QJsonObject reObj = {
@@ -176,5 +179,37 @@ QByteArray Control::dealRequestPublishComment(QByteArray data)
 QByteArray Control::dealRequestComments(QByteArray data)
 {
     //由于还没有做到回复评论，现在先只寻找一定数量的评论
+    QJsonDocument commentDoc = QJsonDocument::fromJson(data);
+    QJsonObject commentObj = commentDoc.object();
+    qDebug() << commentObj;
+    QString noteId = commentObj["noteId"].toString();
+    int flag = commentObj["count"].toInt();
+
+    //得到这次要传回去的评论有哪些
+    Note *note = NoteBroker::getInstance()->findById(noteId);
+    QList<QString> commentIDs ;
+    note->commentList(flag, commentIDs);
+
+    qDebug() << commentIDs.size()<<"+++++++++++++++\n";
+
+    //开始获取每条评论的内容
+    QJsonObject comments;
+    for(auto commentId:commentIDs)
+    {
+        Comment *comment = CommentBroker::getInstance()->findById(commentId);
+        QJsonObject commentObj = comment->getDetails();
+        Netizen *owner = NetizenBroker::getInstance()->findById(commentObj["owner_id"].toString());
+        QJsonObject ownerInfo = owner->getAbstract();
+        commentObj.insert("ownerInfo", QJsonValue(ownerInfo));
+        comments.insert(commentId, QJsonValue(commentObj));
+
+    }
+    QJsonDocument resDoc;
+    comments.insert("function", "check_comment");
+    resDoc.setObject(comments);
+    qDebug() << comments.keys()<<"keys!!!!!!!!!!!!!!!!\n";
+    QByteArray res = resDoc.toJson();
+    res.append('\r');
+    return res;
 
 }

@@ -75,8 +75,10 @@ Material *MaterialBroker::findById(QString materialId)
 
 bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
 {
+
     if(!materialsObject.isEmpty()){
         //图片所有uudi的集合
+        bool yes_=true;
         QStringList keys = materialsObject.keys();
 
         //遍历每一个图片Json对象
@@ -103,10 +105,11 @@ bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
             new_cache.addToCache(key,std::move(material));
 
             //判断是否加入成功
-            bool yes_ = new_cache.inCache(key) ? true : false;
+            yes_ &= new_cache.inCache(key) ? true : false;
             qDebug() << "-------------" << yes_ << Qt::endl;
-            return yes_;
+
         }
+        return yes_;
 
     }
     return false;

@@ -138,11 +138,17 @@ void NoteBroker::initCache()
         QString bloggerId=QString::fromStdString(res_n->getString(6).c_str());
 
         //初始化这条笔记的所有评论列表
-//        QList<QString> commentIds;
-//        std::string cmd_cmt= "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
-//        sql::ResultSet *set_cmt = query(cmd_m);
+        QList<QString> commentIds;
+        std::string cmd_cmt= "select id from comment where note_id=\""+noteId.toStdString()+"\"and parent_id=id group by time desc,id desc";
+        sql::ResultSet *set_cmt = query(cmd_cmt);
+        while(set_cmt->next())
+        {
+            QString cmtId = QString::fromStdString(set_cmt->getString(1).c_str());
+            commentIds.push_back(cmtId);
+        }
+        qDebug() << commentIds.size()<<'\n';
 
-        Note note(noteId, title, content,time,materials,bloggerId);
+        Note note(noteId, title, content,time,materials,bloggerId,std::move(commentIds));
 
         //初始化笔记关联的materialproxy（material ids）
         std::string cmd_m = "select id,number from material where note_id=\""+noteId.toStdString()+"\"";
@@ -154,6 +160,7 @@ void NoteBroker::initCache()
             MaterialProxy mp(id);
             note.addMaterial(order, std::move(mp));
         }
+
 
         old_clean_cache.addToCache(noteId, std::move(note));
     }
@@ -241,26 +248,10 @@ QByteArray NoteBroker::getNotes(QString netizenId)
 void NoteBroker::sycn()
 {
 
-    std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
+
     std::unordered_map<QString,Note> &mapFromODCache = old_dirty_cache.getCacheConst();
     std::unordered_map<QString,Note> &mapFromODECache = old_deleted_cache.getCacheConst();
     qDebug()<<"note的同步--------------------------------------------------------------------";
-    //newCache内包括了脏的
-    for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
-    {
-        //更新note表
-        Note &note = it->second;
-        QJsonObject oneNote =note.toDB();
-        QString id = oneNote["id"].toString();
-        QString title = oneNote["title"].toString();
-        QString content = oneNote["content"].toString();
-        int materials = oneNote["materials"].toInt();
-        QString time = oneNote["time"].toString();
-        QString blogger = oneNote["blogger"].toString();
-        std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
-        insert(cmd);
-        qDebug() << cmd << '\n';
-    }
     for(auto it = mapFromODCache.begin();it != mapFromODCache.end(); ++it)
     {
         //更新note表
@@ -287,12 +278,34 @@ void NoteBroker::sycn()
         qDebug() << cmd << '\n';
     }
     //同步完成，再次初始化old_clean_cache
-    newCache.clearCache();
+
     old_clean_cache.clearCache();
     old_dirty_cache.clearCache();
     old_deleted_cache.clearCache();
     initCache();
 
+}
+
+void NoteBroker::sycn_new()
+{
+    std::unordered_map<QString,Note> &mapFromNewCache = newCache.getCacheConst();
+    //newCache内包括了脏的
+    for(auto it = mapFromNewCache.begin();it != mapFromNewCache.end(); ++it)
+    {
+        //更新note表
+        Note &note = it->second;
+        QJsonObject oneNote =note.toDB();
+        QString id = oneNote["id"].toString();
+        QString title = oneNote["title"].toString();
+        QString content = oneNote["content"].toString();
+        int materials = oneNote["materials"].toInt();
+        QString time = oneNote["time"].toString();
+        QString blogger = oneNote["blogger"].toString();
+        std::string cmd = "insert ignore into note values(\"" + id.toStdString() + "\",\""+title.toStdString() + "\",\"" + content.toStdString() +"\",\"" + std::to_string(materials)+"\",\"" + time.toStdString() + "\",\"" + blogger.toStdString() + "\")";
+        insert(cmd);
+        qDebug() << cmd << '\n';
+    }
+        newCache.clearCache();
 }
 
 //void NoteBroker::start_thread()

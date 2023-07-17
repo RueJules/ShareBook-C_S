@@ -12,14 +12,15 @@ Date:2023.6.19*/
 class Note :public NoteInterface {
 
 public:
-/*    Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger, QList<QString> &&comments);*///从数据库读取数据生成笔记
-      Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger);
+    Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger, QList<QString> &&comments);//从数据库读取数据生成笔记
+    Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger);
 
     void addMaterial(int order,MaterialProxy &&material)override;
     QJsonObject getNoteAbstract() override;
     QJsonObject getNoteDetails() override;
     QJsonObject toDB();
     void addComment(QString commentId) override;
+    void commentList(int flag,QList<QString> &commentsId);
 
 private:
     QString m_bloggerId; //博主id

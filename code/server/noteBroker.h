@@ -22,6 +22,7 @@ public:
     void initCache();//同步数据库，把数据库的内容写到cache里
     QByteArray getNotes(QString netizenId);
     void sycn();//同步数据库，把cache的内容写回数据库
+    void sycn_new();//同步数据库，把新发布的笔记的内容写回数据库
    // void start_thread();
 private:
     NoteBroker();

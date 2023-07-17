@@ -69,11 +69,10 @@ void BoostNetwork::doRead()
                 resultArray = _control->dealRequestPublishComment(recArray);
                 doWrite(resultArray);
             }
-            if(receiveObj["function"] == "view_more_comments")
+            if(receiveObj["function"] == "check_comment")
             {
                 qDebug() << "加载一些评论\n";
                 resultArray = _control->dealRequestComments(recArray);
-                //记得加'\r'了吗！！！！！
                 doWrite(resultArray);
 
              }
@@ -90,7 +89,7 @@ void BoostNetwork::doRead()
 }
 void BoostNetwork::doWrite(QByteArray &result)
 {
-    //qDebug() <<"准备发了！！！！" <<result <<'\n';
+    qDebug() <<"准备发了！！！！" <<result.size() <<'\n';
 
     dataToSend = boost::asio::buffer(result.data(), result.size());
     auto self(shared_from_this());

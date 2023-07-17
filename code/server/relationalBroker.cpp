@@ -31,7 +31,7 @@ void RelationalBroker::initDataBase()
     sql::Driver* driver = sql::mariadb::get_driver_instance();
 
     //配置连接
-    sql::SQLString url("jdbc:mariadb://10.252.49.215:3306/ShareBook");
+    sql::SQLString url("jdbc:mariadb://10.252.148.137:3306/ShareBook");
     sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
 
     //建立连接
@@ -103,9 +103,10 @@ void RelationalBroker::sycn()
     while(true){
         std::this_thread::sleep_for(std::chrono::seconds(FRESH_TIME));
         NetizenBroker::getInstance()->sycn_signIn();
-        NoteBroker::getInstance()->sycn();
+        NoteBroker::getInstance()->sycn_new();
         NetizenBroker::getInstance()->sycn();
         CommentBroker::getInstance()->sycn();
+        NoteBroker::getInstance()->sycn();
         MaterialBroker::getInstance()->sycn();
     }
 }

@@ -4,9 +4,10 @@
 #include <QJsonValue>
 #include <QJsonObject>
 #include <netizenBroker.h>
+#define MAX_COMMENTS  10
 
-//Note::Note(QString id, QString title, QString content, QDateTime time, int materialCount, QString blogger):NoteInterface{id},m_title{title},m_content{content},m_time{time},m_materials{materialCount},m_bloggerId{blogger},m_commentList{std::move(comments)}
-//{}
+Note::Note(QString id, QString title, QString content,QDateTime time,int materialCount,QString blogger, QList<QString> &&comments):NoteInterface{id},m_title{title},m_content{content},m_time{time},m_materials{materialCount},m_bloggerId{blogger},m_commentList{std::move(comments)}
+{}
 Note::Note(QString id, QString title, QString content, QDateTime time, int materialCount, QString blogger):NoteInterface{id},m_title{title},m_content{content},m_time{time},m_materials{materialCount},m_bloggerId{blogger}
 {}
 
@@ -62,6 +63,7 @@ QJsonObject Note::getNoteDetails()
     }
     noteDetails.insert("materials", QJsonValue(materials));
     noteDetails.insert("function", "check");
+    //qDebug() << noteDetails << '\n';
     return noteDetails;
 }
 
@@ -81,6 +83,20 @@ QJsonObject Note::toDB()
 void Note::addComment(QString commentId)
 {
     m_commentList.push_front(commentId);
+}
+
+void Note::commentList(int flag, QList<QString> &commentsId)
+{
+    //规定每次获取的最高数量
+    //从标志位开始获取剩下的一部分评论
+    for(int i = flag;i < m_commentList.size();i++)
+    {
+        if(commentsId.size() >= MAX_COMMENTS)
+        {
+            break;
+        }
+        commentsId.push_back(m_commentList[i]);
+    }
 }
 
 
