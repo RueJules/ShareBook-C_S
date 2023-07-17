@@ -10,13 +10,20 @@ Page {
         anchors.fill: parent
         color:"#fdfbfb"
     }
+//    Component.onCompleted: {
+//        console.log("查看评论\n\n\n")
+//        control.requestCommentDetail(detail[3],0);
+//    }
+
     Connections {
         target: control
         function onGetNoteDetail(noteDetail){
             contentArea.text=noteDetail[0][0];
             repeater.model=noteDetail[1];
+            control.requestCommentDetail(detail[3],0)
         }
         function onGetCommentDetail(commentDetial){
+            //commentListView
             commentListView.model=commentDetial
         }
     }
@@ -91,7 +98,8 @@ Page {
                 MouseArea{
                     anchors.fill: parent
                     onClicked: {
-                        loader.source="PersonalPage.qml"
+                        //loader.source="PersonalPage.qml"
+
                     }
                 }
             }
@@ -132,18 +140,24 @@ Page {
         id:sv
         anchors.fill: parent
         anchors.topMargin: 3
-        contentHeight: view.height + indicator.height + titleArea.height + contentArea.height + note_time.height + pge.height*0.2
+        contentHeight: view.height + indicator.height + titleArea.height + contentArea.height + note_time.height +commentListView.height
         SwipeView {
             id:view
             width: parent.width
             height: 700
+            currentIndex: indicator.currentIndex
             Image{
+                width: view.width
+                height: 700
                 fillMode: Image.PreserveAspectFit
                 source:detail[4]
             }
+
             Repeater{
                 id:repeater
                 Image{
+                    width: view.width
+                    height: 700
                     fillMode: Image.PreserveAspectFit
                     source:"image://material/" + modelData;
                 }
@@ -196,92 +210,104 @@ Page {
             wrapMode:Text.Wrap
             text:detail[5]
         }
+        ListView{
+            id:commentListView
+            property bool needLoadMore:false
+            anchors.top: note_time.bottom
+            anchors.topMargin: 50
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            spacing: 10
+            width: root.width-20
+            height: root.height
+
+            delegate: Rectangle {
+                color: "#fdfbfb"
+                width: parent.width
+                height: root.height/20
+                Image {
+                    id: comment_netizen_profile
+                    source: "image://profile/"+modelData[0]
+                    width: parent.height
+                    height:parent.height
+                    fillMode: Image.PreserveAspectCrop //缩放以适应屏幕
+                    visible: false
+                }
+                Rectangle {
+                    id: comment_mask
+                    color: "black"
+                    radius: 50
+                    width: parent.height
+                    height:parent.height
+                    visible: false
+                }
+                OpacityMask {
+                    anchors.fill: comment_netizen_profile
+                    source: comment_netizen_profile
+                    maskSource: comment_mask
+                    visible: true
+                }
+                Text{
+                    id:comment_netizen_nickname
+                    text:modelData[1]
+                    font.pixelSize: 12
+                    color:"#4d4747"
+                    anchors.left: comment_netizen_profile.right
+                    anchors.leftMargin: 5
+                    anchors.top:parent.top
+                    anchors.topMargin: 10
+                }
+                Text{
+                    id:comment_content
+                    text:modelData[2]
+                    font.pixelSize: 12
+                    anchors.left: comment_netizen_profile.right
+                    anchors.leftMargin: 5
+                    anchors.bottom:parent.bottom
+                    anchors.bottomMargin: 10
+                }
+                Text{
+                    id:comment_time
+                    text:modelData[3]
+                    font.pixelSize: 8
+                    color: "#4d4747"
+                    anchors.left: comment_content.right
+                    anchors.leftMargin: 20
+                    anchors.bottom:parent.bottom
+                    anchors.bottomMargin: 10
+                }
+
+    //            //一个填充头像部分，点击头像跳转到个人主页
+    //            MouseArea{
+    //            }
+    //            //一个填充评论内容部分，点击内容回复该条评论
+    //            MouseArea{
+    //                onClicked: {
+    //                    reply_popup.open();
+    //            textarea_reply.text: "回复@"+comment_netizen_nickname.text
+    //                }
+    //            }
+            }
+
+            //下拉到底端的时候再次获取评论，control->requestCommentDetail(detail[3],commentListView.count)
+            onContentYChanged: {
+                //上拉加载判断逻辑：还差两条笔记就刷完，还上拉一定距离
+                if (contentHeight>height && contentY-originY > (contentHeight-root.height/20)-height){
+                    needLoadMore = true;
+                }else{
+                    needLoadMore = false;
+                }
+            }
+            onNeedLoadMoreChanged: {
+                if(needLoadMore){
+                    console.log("加载更多");
+                    control.requestCommentDetail(detail[3],commentListView.count)
+                }
+            }
+        }
     }
     //评论列表
-    ListView{
-        id:commentListView
-        property bool needLoadMore:false
-        anchors.top: sv.bottom
-        anchors.topMargin: 15
-//        anchors.left: parent.left
-//        anchors.leftMargin: 15
-        //anchors.right: parent.right
-        spacing: 5
-        width: parent.width
-        delegate: Rectangle {
-            color: "#fdfbfb"
-            width: parent.width
-            height:root.height/20
-            Image {
-                id: comment_netizen_profile
-                source: "image://profile/"+modelData[0]
-                width: parent.width
-                height:parent.height
-                fillMode: Image.PreserveAspectCrop //缩放以适应屏幕
-                visible: false
-            }
-            Rectangle {
-                id: comment_mask
-                color: "black"
-                radius: 50
-                width: parent.width
-                height:parent.height
-                visible: false
-            }
-            OpacityMask {
-                anchors.fill: comment_netizen_profile
-                source: comment_netizen_profile
-                maskSource: comment_mask
-                visible: true
-            }
-            Text{
-                id:comment_netizen_nickname
-                text:modelData[1]
-                font.pixelSize: 12
-                anchors.left: comment_netizen_profile.right
-                anchors.top:parent.top
-            }
-            Text{
-                id:comment_content
-                text:modelData[2]
-                font.pixelSize: 12
-                anchors.left: comment_netizen_profile.right
-                anchors.top:comment_netizen_nickname.bottom
-            }
-            Text{
-                id:comment_time
-                text:modelData[3]
-                font.pixelSize: 8
-                anchors.left: comment_content.right
-            }
-//            //一个填充头像部分，点击头像跳转到个人主页
-//            MouseArea{
-//            }
-//            //一个填充评论内容部分，点击内容回复该条评论
-//            MouseArea{
-//                onClicked: {
-//                    reply_popup.open();
-//            textarea_reply.text: "回复@"+comment_netizen_nickname.text
-//                }
-//            }
-        }
 
-        //下拉到底端的时候再次获取评论，control->requestCommentDetail(detail[3],commentListView.count)
-        onContentYChanged: {
-            //上拉加载判断逻辑：还差两条笔记就刷完，还上拉一定距离
-            if (contentHeight>height && contentY-originY > (contentHeight-root.height/20)-height){
-                needLoadMore = true;
-            }else{
-                needLoadMore = false;
-            }
-        }
-        onNeedLoadMoreChanged: {
-            if(needLoadMore){
-                console.log("加载更多");
-                //control.requestCommentDetail(detail[3],commentListView.count)
-            }
-        }
-    }
     //评论输入框
     Popup {
         id: comment_popup
@@ -648,7 +674,7 @@ Page {
             repeat: true
             onTriggered:{
                 publishReply_result.close() // 触发时关闭Popup
-                comment_timer.running=false
+                reply_timer.running=false
                 if(publishReply_result_text.text==="发布成功"){
                     publishReply_result_text.text="";
                     textarea_reply.clear();

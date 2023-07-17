@@ -102,7 +102,7 @@ Item {
                         stack.push("NoteDetailPage.qml",{"data":detail_data})
 
                         control.requestNoteDetail(id_);
-                        control.requestCommentDetail(id_,0);
+
                     }
                 }
 

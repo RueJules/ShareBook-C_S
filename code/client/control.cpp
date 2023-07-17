@@ -1,4 +1,4 @@
-#include "control.h"
+ #include "control.h"
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonDocument>
@@ -14,7 +14,7 @@ Control::Control()
     ,m_material_provider{new ImageProvider},m_profile_provider{new ImageProvider}
     ,model{}
 {
-    connect_socket=std::make_shared<Client>(m_service,"10.252.14.174",2001,this);
+    connect_socket=std::make_shared<Client>(m_service,"10.252.241.181",2001,this);
     for ( int i = 0; i < THREAD_COUNT; ++i)
         threads.create_thread(boost::bind(&boost::asio::io_service::run, &m_service));
 
@@ -116,7 +116,9 @@ void Control::requestNoteDetail(QString noteId)
     QJsonDocument doc(noteInfo);
     QByteArray data=doc.toJson();
     data.append('\r');
+
     connect_socket->do_write(data);
+    //requestCommentDetail(noteId,0);
 }
 
 void Control::receiveNoteDetail(QJsonObject obj)
@@ -139,6 +141,7 @@ void Control::receiveNoteDetail(QJsonObject obj)
     }
     sl.append(temp);
     emit getNoteDetail(sl);
+
 }
 void Control::requestPublishNote(QString title,QString content,QList<QString> paths)
 {
@@ -147,16 +150,17 @@ void Control::requestPublishNote(QString title,QString content,QList<QString> pa
         {"function","publish"},
         {"noteId",QUuid::createUuid().toString(QUuid::Id128)},
         {"netizenId",netizenId},
+        {"materialCount",paths.size()},
         {"title",title},
         {"content",content}
     };
-
+    qDebug()<<"发送的图片数量：+++++++++++++++++++++"<<paths;
     QJsonObject materials;
     int order=0;//给素材排序
     for(QString path:paths){
         QJsonObject material;
 
-        path.remove(0,6);//删除file:/
+        path.remove(0,6);//删除file://
 
         QImage image(path);
         QByteArray imageData;
@@ -239,16 +243,23 @@ void Control::receiveCommentDetail(QJsonObject obj)
     QStringList keys=obj.keys();
     for(const auto &key:keys){
         QList<QVariant> temp;
-        //添加评论的id
-//        temp.append(key);
-//        //添加头像
-//        QPixmap image;
-//        QByteArray data=QByteArray::fromBase64(materials.value(key).toString().toUtf8());
-//        image.loadFromData(data);
-//        m_provider->setPixmap(key,image);
+        //添加发表评论的用户的信息
+        QJsonObject comment=obj.value(key).toObject();
+        QJsonObject netizen=comment.value("ownerInfo").toObject();
+        temp.append(netizen["netizenId"].toString());
+        temp.append(netizen["nickname"].toString());
+        QPixmap image;
+        QByteArray data=QByteArray::fromBase64(netizen["profile"].toString().toUtf8());
+        image.loadFromData(data);
+        m_profile_provider->setPixmap(netizen["netizenId"].toString(),image);
+        //添加评论的信息
+        temp.append(comment["content"].toString());
+        temp.append(comment["time"].toString());
+        temp.append(key);
+        temp.append(comment["top_id"].toString());
+        sl.append(temp);
     }
-//    sl.append(temp);
-//    emit getNoteDetail(sl);
+    emit getCommentDetail(sl);
 }
 
 void Control::requestReplyDetail(QString commentId)
@@ -266,5 +277,28 @@ void Control::requestReplyDetail(QString commentId)
 
 void Control::receiveReplyDetail(QJsonObject obj)
 {
-
+    //遍历每一条回复
+    obj.remove("function");
+    QList<QList<QVariant>> sl;
+    //每个key是回复的id
+    QStringList keys=obj.keys();
+    for(const auto &key:keys){
+        QList<QVariant> temp;
+        //添加发表评论的用户的信息
+        QJsonObject reply=obj.value(key).toObject();
+        QJsonObject netizen=reply.value("ownerInfo").toObject();
+        temp.append(netizen["netizenId"].toString());
+        temp.append(netizen["nickname"].toString());
+        QPixmap image;
+        QByteArray data=QByteArray::fromBase64(netizen["profile"].toString().toUtf8());
+        image.loadFromData(data);
+        m_profile_provider->setPixmap(netizen["netizenId"].toString(),image);
+        //添加评论的信息
+        temp.append(reply["content"].toString());
+        temp.append(reply["time"].toString());
+        temp.append(key);
+        temp.append(reply["parent_id"].toString());
+        sl.append(temp);
+    }
+    emit getReplyDetail(sl);
 }

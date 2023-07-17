@@ -80,8 +80,8 @@ void Client::do_read() {
             if(function=="check_comment"){
                 control->receiveCommentDetail(obj);
             }
-//            qDebug()<<read_buffer.size();
-//            qDebug()<<length;
+            qDebug()<<read_buffer.size();
+            qDebug()<<length;
             if(read_buffer.size()>0)
             {
                 do_read();
