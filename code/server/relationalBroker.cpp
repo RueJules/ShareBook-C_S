@@ -11,18 +11,7 @@ std::unique_ptr<sql::Connection> RelationalBroker::m_conn=NULL;
 
 RelationalBroker::RelationalBroker()
 {
-//    //安装驱动
-//    sql::Driver* driver = sql::mariadb::get_driver_instance();
 
-//    //配置连接
-//    sql::SQLString url("jdbc:mariadb://10.252.49.215:3306/ShareBook");
-//    sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
-
-//    //建立连接
-//    std::unique_ptr<sql::Connection> conn(driver->connect(url, properties));
-//    m_conn=std::move(conn);
-
-    //qDebug() << "over\n";
 }
 
 void RelationalBroker::initDataBase()
@@ -31,7 +20,7 @@ void RelationalBroker::initDataBase()
     sql::Driver* driver = sql::mariadb::get_driver_instance();
 
     //配置连接
-    sql::SQLString url("jdbc:mariadb://10.252.148.137:3306/ShareBook");
+    sql::SQLString url("jdbc:mariadb://10.252.4.175:3306/ShareBook");
     sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
 
     //建立连接

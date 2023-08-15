@@ -60,6 +60,10 @@ void BoostNetwork::doRead()
             if(receiveObj["function"] == "publish")
             {
                 qDebug() << "发布笔记\n";
+                if(receiveObj["materialType"] == "video")
+                {
+                    //把视频数据通过另一个套接字发送给流媒体服务器
+                }
                 resultArray = _control->dealRequestPublishNote(recArray);
                 doWrite(resultArray);
             }

@@ -94,11 +94,9 @@ QByteArray Control::dealRequestPublishNote(QByteArray data)
         //在服务器这边创建material实例,保存图片到服务器本地
         QJsonObject mJ = noteDetailInfo["materials"].toObject();
         bool materialsCreated = true;
-
         if(!mJ.isEmpty()){
             materialsCreated = MaterialBroker::getInstance()->createMaterial(noteDetailInfo["noteId"].toString(),mJ);
         }
-
 
         //在服务器这边创建note实例
         bool noteCreated = NoteBroker::getInstance()->createNote(noteDetailInfo);
@@ -211,5 +209,10 @@ QByteArray Control::dealRequestComments(QByteArray data)
     QByteArray res = resDoc.toJson();
     res.append('\r');
     return res;
+
+}
+
+QString Control::pushVideo(QByteArray &videoData)
+{
 
 }

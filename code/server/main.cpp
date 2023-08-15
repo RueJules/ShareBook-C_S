@@ -19,33 +19,13 @@ int main(int argc, char *argv[])
    // relationalBroker.sycn();
     std::thread  *thread=new std::thread(&RelationalBroker::sycn,&relationalBroker);
 
-//    std::shared_ptr<NetizenBroker> netizenBroker = NetizenBroker::getInstance();
-//    std::shared_ptr<NoteBroker> noteBroker = NoteBroker::getInstance();
-//    std::shared_ptr<MaterialBroker> materialsBroker = MaterialBroker::getInstance();
-//    std::shared_ptr<CommentBroker> commentBroker = CommentBroker::getInstance();
 
-//    //缓存初始化
-//    netizenBroker->initCache();
-//    noteBroker->initCache();
-//    materialsBroker->initCache();
-//    commentBroker->initCache();
-
-//    //启动缓存同步线程
-//    noteBroker->start_thread();
-//    netizenBroker->start_thread();
-//    commentBroker->start_thread();
-//    materialsBroker->start_thread();
 
     //服务器开始监听
     Server server;
-    server.startAccept();
+    std::thread(&Server::startAccept, server).join();
+    std::thread(&Server::startCommunicate, server).join();
 
-//    QQmlApplicationEngine engine;
-//    const QUrl url(u"qrc:/Login/Main.qml"_qs);
-//    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
-//        &app, []() { QCoreApplication::exit(-1); },
-//        Qt::QueuedConnection);
-//    engine.load(url);
     thread->join();
 
     return app.exec();

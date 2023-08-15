@@ -88,7 +88,7 @@ bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
             QJsonObject materialJ = materialsObject[key].toObject();
 
             //素材的二进制数据
-            QByteArray imageData=QByteArray::fromBase64(materialJ["image"].toString().toUtf8());
+            QByteArray imageData=QByteArray::fromBase64(materialJ["material"].toString().toUtf8());
             QImage image = QImage::fromData(imageData);
             QString filename = "/root/sharebook/materials/"+key+".jpg";
 

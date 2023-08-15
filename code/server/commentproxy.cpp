@@ -17,5 +17,5 @@ QJsonObject CommentProxy::getDetails()
         Comment *comment = CommentBroker::getInstance()->findById(get_id());
         m_comment = std::make_unique<Comment>(*comment);
     }
-    m_comment->getDetails()
+    m_comment->getDetails();
 }

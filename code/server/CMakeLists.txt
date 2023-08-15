@@ -34,6 +34,8 @@ target_sources(appServer
         cache.h
         server.h server.cpp
         boostnetwork.h boostnetwork.cpp
+        socket.h socket.cpp
+        threadsafe_queue.h threadsafe_queue.cpp
         
     PUBLIC
         
