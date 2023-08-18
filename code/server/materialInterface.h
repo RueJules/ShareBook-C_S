@@ -11,6 +11,7 @@ public:
     MaterialInterface(QString new_id);
     QString get_id();
     virtual QJsonObject getDetails()=0;
+    virtual QJsonObject getVideo() = 0;
 private:
     QString m_id; //素材id
 };

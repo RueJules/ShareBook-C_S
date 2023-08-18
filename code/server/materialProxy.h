@@ -13,6 +13,7 @@ public:
     MaterialProxy(QString id);
     MaterialProxy(QString id,std::unique_ptr<Material> &&material);
     QJsonObject getDetails()override;
+    QJsonObject getVideo() override;
 
 private:
     std::unique_ptr<Material> m_material; //持有一个素材实例

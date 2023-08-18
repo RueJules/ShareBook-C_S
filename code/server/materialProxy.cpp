@@ -23,4 +23,13 @@ QJsonObject MaterialProxy::getDetails()
     return m_material->getDetails();
 }
 
+QJsonObject MaterialProxy::getVideo()
+{
+    if(m_material == nullptr){
+        Material *material =  MaterialBroker::getInstance()->findById(get_id());
+        m_material = std::make_unique<Material>(*material);
+    }
+    return m_material->getVideo();
+}
+
 

@@ -15,7 +15,7 @@
 #include "noteProxy.h"
 #include "commentbroker.h"
 
-QJsonDocument Control::matchLoginInfo(QByteArray data)
+QJsonDocument Control::matchLoginInfo(QByteArray &data)
 {
     //qDebug() << data;
     QJsonDocument loadDoc=QJsonDocument::fromJson(data);
@@ -52,7 +52,7 @@ QJsonDocument Control::matchLoginInfo(QByteArray data)
     return account;
 }
 
-QByteArray Control::dealRequestRecommendNote(QByteArray data)
+QByteArray Control::dealRequestRecommendNote(QByteArray &data)
 {
     QJsonDocument loadDoc=QJsonDocument::fromJson(data);
     QJsonObject noteDetailInfo=loadDoc.object();
@@ -60,7 +60,7 @@ QByteArray Control::dealRequestRecommendNote(QByteArray data)
     return NoteBroker::getInstance()->getNotes(requestId);
 }
 
-QByteArray Control::dealRequestNoteDetail(QByteArray data)
+QByteArray Control::dealRequestNoteDetail(QByteArray &data)
 {
     //解析出笔记ID
     QJsonDocument detailRequest = QJsonDocument::fromJson(data);
@@ -80,7 +80,7 @@ QByteArray Control::dealRequestNoteDetail(QByteArray data)
 
 }
 
-QByteArray Control::dealRequestPublishNote(QByteArray data)
+QByteArray Control::dealRequestPublishNote(QByteArray &data)
 {
     QJsonDocument loadDoc=QJsonDocument::fromJson(data);
     QJsonObject noteDetailInfo=loadDoc.object();
@@ -141,7 +141,7 @@ QByteArray Control::dealRequestPublishNote(QByteArray data)
     return res;
 }
 
-QByteArray Control::dealRequestPublishComment(QByteArray data)
+QByteArray Control::dealRequestPublishComment(QByteArray &data)
 {
     //处理评论数据
     QJsonDocument Jdoc = QJsonDocument::fromJson(data);
@@ -174,7 +174,7 @@ QByteArray Control::dealRequestPublishComment(QByteArray data)
 
 }
 
-QByteArray Control::dealRequestComments(QByteArray data)
+QByteArray Control::dealRequestComments(QByteArray &data)
 {
     //由于还没有做到回复评论，现在先只寻找一定数量的评论
     QJsonDocument commentDoc = QJsonDocument::fromJson(data);
@@ -212,7 +212,9 @@ QByteArray Control::dealRequestComments(QByteArray data)
 
 }
 
-QString Control::pushVideo(QByteArray &videoData)
+QByteArray Control::dealRequestViewVideos(QByteArray &data)
 {
+    //取出笔记中的素材类型是视频的笔记信息
 
 }
+

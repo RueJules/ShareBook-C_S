@@ -36,5 +36,18 @@ QJsonObject NoteProxy::getNoteDetails()
 
 void NoteProxy::addComment(QString commentId)
 {
+    if(!m_note){
+        Note *note = NoteBroker::getInstance()->findById(get_Id());
+        m_note = std::make_unique<Note>(std::move(*note));
+    }
+    return m_note->addComment(commentId);
+}
 
+bool NoteProxy::isVideo()
+{
+    if(!m_note){
+        Note *note = NoteBroker::getInstance()->findById(get_Id());
+        m_note = std::make_unique<Note>(std::move(*note));
+    }
+    return m_note->isVideo();
 }

@@ -232,7 +232,6 @@ QByteArray NoteBroker::getNotes(QString netizenId)
         QJsonDocument oneD;
         QJsonObject notesJson;
         QJsonObject nJson = note->getNoteAbstract();
-        //nJson.insert("function", "view");
 
         notesJson.insert(note->get_Id(), QJsonValue(nJson));
         notesJson.insert("function", "view");
@@ -243,6 +242,21 @@ QByteArray NoteBroker::getNotes(QString netizenId)
         arraies.append(array);
     }
     return arraies;
+}
+
+QByteArray NoteBroker::getNotes()
+{
+//    QList<Note*> list;
+
+
+//    //在三个cache里面获取一定数量的笔记
+//    newCache.getSome(list);
+//    if(list.size() > 0)
+//    {
+//        qDebug() << "找到了！\n";
+//    }
+//    old_clean_cache.getSome(list);
+//    old_dirty_cache.getSome(list);
 }
 
 void NoteBroker::sycn()

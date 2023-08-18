@@ -20,7 +20,7 @@ void RelationalBroker::initDataBase()
     sql::Driver* driver = sql::mariadb::get_driver_instance();
 
     //配置连接
-    sql::SQLString url("jdbc:mariadb://10.252.4.175:3306/ShareBook");
+    sql::SQLString url("jdbc:mariadb://10.252.201.155:3306/ShareBook");
     sql::Properties properties({{"user", "ShareBook"}, {"password", "12345678"}});
 
     //建立连接

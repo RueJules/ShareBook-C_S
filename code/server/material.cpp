@@ -6,6 +6,7 @@ Date:2023.6.17*/
 #include <QVariant>
 #include <QPixmap>
 #include <QBuffer>
+#include "server.h"
 
 #include "material.h"
 
@@ -35,9 +36,23 @@ QJsonObject Material::getDetails()
     return imgJson;
 }
 
+QJsonObject Material::getVideo()
+{
+    QJsonObject videoJson{
+        {get_id(), m_imgsrc}
+    };
+    return videoJson;
+}
+
 void Material::getInfo(QString &id, QString &imgsrc, QString &note_id, int &order)
 {
     id=get_id();
+
+    if(m_imgsrc==""){
+        std::string strPath;
+        //Server::path.wait_and_pop(id.toStdString(), strPath);
+        m_imgsrc = QString::fromStdString(strPath);
+    }
     imgsrc=m_imgsrc;
     note_id=m_noteId;
     order=m_order;

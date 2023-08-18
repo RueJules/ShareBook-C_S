@@ -366,7 +366,13 @@ void NetizenBroker::oldClean_To_oldD(QString netizenID)
 {
     //qDebug()<<oldDirty_cache.size()<<"-----------------1"<<oldClean_cache.size();
 
-    oldDirty_cache.addToCache(netizenID,std::move(oldClean_cache.getFromCache(netizenID)));
-    oldClean_cache.deleteFromCache(netizenID);
+    if(oldClean_cache.inCache(netizenID))
+    {
+        oldDirty_cache.addToCache(netizenID,std::move(oldClean_cache.getFromCache(netizenID)));
+        oldClean_cache.deleteFromCache(netizenID);
+    }else{
+        return;
+    }
+
     //qDebug()<<oldDirty_cache.size()<<"-----------------2"<<oldClean_cache.size();
 }

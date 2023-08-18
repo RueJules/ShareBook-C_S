@@ -11,12 +11,13 @@ class Control:public QObject{
     Q_OBJECT
 
 public:
-    QJsonDocument matchLoginInfo(QByteArray data);
-    QByteArray dealRequestRecommendNote(QByteArray data);
-    QByteArray dealRequestNoteDetail(QByteArray data);
-    QByteArray dealRequestPublishNote(QByteArray data);
-    QByteArray dealRequestPublishComment(QByteArray data);
-    QByteArray dealRequestComments(QByteArray data);
+    QJsonDocument matchLoginInfo(QByteArray &data);
+    QByteArray dealRequestRecommendNote(QByteArray &data);
+    QByteArray dealRequestNoteDetail(QByteArray &data);
+    QByteArray dealRequestPublishNote(QByteArray &data);
+    QByteArray dealRequestPublishComment(QByteArray &data);
+    QByteArray dealRequestComments(QByteArray &data);
+    QByteArray dealRequestViewVideos(QByteArray &data);
 
 private:
 

@@ -21,6 +21,7 @@ public:
     QJsonObject toDB();
     void addComment(QString commentId) override;
     void commentList(int flag,QList<QString> &commentsId);
+    bool isVideo() override;
 
 private:
     QString m_bloggerId; //博主id

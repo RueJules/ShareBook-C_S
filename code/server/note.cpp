@@ -19,6 +19,9 @@ void Note::addMaterial(int order, MaterialProxy &&material)
 QJsonObject Note::getNoteAbstract()
 {
     QJsonObject noteAbs;
+    noteAbs = {
+        {"title", m_title},{"time",m_time.toString("yyyy-MM-dd hh:mm:ss")}
+    };
 
     //需要在这里找到笔记的博主信息(头像、昵称)，第一张素材的信息(顺序，图片数据)和笔记的标题、时间
     Netizen *netizen = NetizenBroker::getInstance()->findById(m_bloggerId);
@@ -26,20 +29,19 @@ QJsonObject Note::getNoteAbstract()
     QJsonObject materialJson;
     if(!m_materialList.empty())
     {
-        materialJson = m_materialList.begin()->second.getDetails();
+        if(m_materials == -1)
+        {
+            materialJson = m_materialList.begin()->second.getVideo();
+            noteAbs.insert("Video", QJsonValue(materialJson));
+        }else{
+            materialJson = m_materialList.begin()->second.getDetails();
+            noteAbs.insert("FirstImg", QJsonValue(materialJson));
+        }
+
     }
 
 
-    //QString id = get_Id();
-    noteAbs = {
-               {"title", m_title},{"time",m_time.toString("yyyy-MM-dd hh:mm:ss")}
-        };
-
-   // QJsonObject noteJ = noteAbs[id].toObject();
-    noteAbs.insert("FirstImg", QJsonValue(materialJson));
     noteAbs.insert("Blogger", QJsonValue(netizenJson));
-
-
 
     //qDebug() << "JsonObject in QJsonObject Note::getNoteAbstract()"<<noteAbs << '\n';
 
@@ -97,6 +99,11 @@ void Note::commentList(int flag, QList<QString> &commentsId)
         }
         commentsId.push_back(m_commentList[i]);
     }
+}
+
+bool Note::isVideo()
+{
+    return m_materials == -1 ? true : false;
 }
 
 

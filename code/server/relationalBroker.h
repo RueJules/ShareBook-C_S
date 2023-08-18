@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include "cache.h"
-#define FRESH_TIME 60
+#define FRESH_TIME 800
 class RelationalBroker
 {
 public:

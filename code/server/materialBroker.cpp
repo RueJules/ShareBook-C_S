@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QBuffer>
 #include <QDebug>
+#include <QFile>
 #include <QJsonDocument>
 #include <mutex>
 #include <memory>
@@ -87,13 +88,27 @@ bool MaterialBroker::createMaterial(QString noteId, QJsonObject materialsObject)
             qDebug() << "uuid-----"<<key << '\n';
             QJsonObject materialJ = materialsObject[key].toObject();
 
+            QString filename;
             //素材的二进制数据
-            QByteArray imageData=QByteArray::fromBase64(materialJ["material"].toString().toUtf8());
-            QImage image = QImage::fromData(imageData);
-            QString filename = "/root/sharebook/materials/"+key+".jpg";
+            if(materialJ["material"].toString() == "")
+            {
+                filename = "";
 
-            //保存到服务器本地
-            image.save(filename, "jpg");
+            }else{
+                //素材的二进制数据
+                QString filename = "/root/sharebook/materials/"+key+".mp4";
+                QFile file2(filename);
+                if (!file2.open(QIODevice::WriteOnly))
+                {
+                    // 文件打开失败，可以在这里处理对应的错误逻辑
+                    qDebug() << "Cannot open file for reading: ";
+                    return false;
+                }
+                QByteArray imageData=QByteArray::fromBase64(materialJ["material"].toString().toUtf8());
+                file2.write(imageData);
+
+                file2.close();
+            }
 
             //继续读素材顺序
             int order=materialJ["order"].toInt();

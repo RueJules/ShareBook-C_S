@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
 
     //服务器开始监听
     Server server;
-    std::thread(&Server::startAccept, server).join();
-    std::thread(&Server::startCommunicate, server).join();
+    std::thread(&Server::startAccept, &server).join();
+    std::thread(&Server::startCommunicate, &server).join();
 
     thread->join();
 

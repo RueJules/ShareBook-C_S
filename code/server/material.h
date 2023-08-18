@@ -11,8 +11,11 @@ class Material : public MaterialInterface {
 
 public:
     Material(QString id,QString imgsrc,QString note_id,int order);
-    QJsonObject getDetails()override;
+    QJsonObject getDetails() override;
+    QJsonObject getVideo() override;
     void getInfo(QString &id,QString &imgsrc,QString &note_id,int &order);
+
+
 private:
     QString m_imgsrc; //当前素材的内容（路径）
     QString m_noteId;//当前素材所属的笔记

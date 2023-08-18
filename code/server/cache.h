@@ -32,7 +32,6 @@ public:
     T& getFromCache(QString id){
 
         std::unique_lock<std::mutex> lock(cacheMutex);
-
         return cache.at(id);
     }
     void deleteFromCache(QString id){
@@ -66,6 +65,20 @@ public:
                 break;
             }
             if(!listCompare.contains(it->first)){
+                list.emplace_back(&it->second);
+            }
+        }
+    }
+    void  getSome(QList<T*> &list){
+
+        std::unique_lock<std::mutex> lock(cacheMutex);
+
+        qDebug() << "from cache size: -----" << cache.size()<<'\n';
+        for(auto it = cache.begin(); it != cache.end(); ++it){
+            if(list.length() >= FIND_COUNT){
+                break;
+            }
+            if(it->second->isVideo()){
                 list.emplace_back(&it->second);
             }
         }

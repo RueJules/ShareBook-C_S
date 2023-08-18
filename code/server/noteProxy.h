@@ -14,6 +14,7 @@ public:
     QJsonObject getNoteAbstract() override;
     QJsonObject getNoteDetails() override;
     void addComment(QString commentId) override;
+    bool isVideo() override;
 
 private:
      std::unique_ptr<Note> m_note;
